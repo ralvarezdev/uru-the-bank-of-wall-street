@@ -1,5 +1,6 @@
 #include <iostream>
 #include "ansiEsc.h"
+#include "input.h"
 
 using namespace std;
 
@@ -16,9 +17,21 @@ void ignoreInput()
 }
 
 // Function to Check if the Command Entered by the User is Correct
-void wrongCommand()
+void wrongCommand(int commandStatus)
 {
-  cout << "ERROR: Wrong Command. Press ENTER to Display Help Message: ";
+  switch (commandStatus)
+  {
+  case wrongMainCmd:
+  case notACmd:
+    cout << "ERROR: Wrong Command. Press ENTER to Display Help Message: ";
+    break;
+  case wrongSearchCmd:
+  case missingSearchParams:
+    string errorDescription = (commandStatus == missingSearchParams) ? "Missing Parameters" : "Wrong Command";
+
+    cout << "ERROR: " << errorDescription << ". Press ENTER to Display Search Data Parameters Message : ";
+    break;
+  }
   ignoreInput();
 }
 

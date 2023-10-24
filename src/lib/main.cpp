@@ -22,35 +22,56 @@ void helpMessage();
 
 int main(int argc, char **argv)
 {
-  bool exit = false, isCommand = true;
+  bool exit = false;
   int commandsExecuted = 0;          // Number of times the Main While Loop has been executed
+  int isCommand = validCmd;          // Variable to Use for Checking if the Command is Valid or Not. If not, it Stores the Reason
   string command, subCommand, param; // Command, SubCommand and Parameter
 
   while (!exit)
   {
-    if (isCommand == false)
+    if (isCommand != validCmd)
     { // If in the last execution the user entered a wrong command
-      wrongCommand();
-      isCommand = true;
+      wrongCommand(isCommand);
+      if (isCommand == missingSearchParams || isCommand == wrongSearchCmd)
+        searchDataParameters(); // Print the Valid Search Data Parameters
+      isCommand = validCmd;
     }
 
     if (commandsExecuted == 0 && argc > 1)
-    {
-      // Checks if it's a Command
+    { // Checks if it's a Command
+      commandsExecuted++;
+
       if (argv[1][0] != '-')
       {
-        isCommand = false;
-        commandsExecuted++;
-        continue;
+        isCommand = notACmd;
+        continue; // Execute the while-loop again
       }
       else
       {
-        command = argv[1]; // Get Command
+        int commandIndex, subCommandIndex;
 
-        if (command[1] == cmdsChar[cmdSearchData])
-        { // Search Data Command
+        command = argv[1];
+        commandIndex = isCharOnArray(command[1], cmdsChar, cmdEnd); // Check if the Command is on the Array of Main Commands. Returns -1 if it doesn't exist
+
+        if (commandIndex == -1 || (commandIndex == cmdSearchData && argc <= 2))
+        {
+          isCommand = (commandIndex == -1) ? notACmd : missingSearchParams;
+          continue;
+        }
+        else if (commandIndex == cmdSearchData)
+        { // Checks if it's a Search Command
           subCommand = argv[2];
-          param = argv[3];
+          subCommandIndex = isCharOnArray(subCommand[2], searchCmdsChar, searchEnd);
+
+          if (subCommand[0] == '-' && subCommandIndex != -1 && argc >= 4)
+          {                  // Check if it's a Subcommand. If so, Checks if it's Valid
+            param = argv[3]; // Add Search Data Parameter
+          }
+          else
+          {
+            isCommand = wrongSearchCmd;
+            continue;
+          }
         }
       }
     }
@@ -63,7 +84,7 @@ int main(int argc, char **argv)
       cin >> command;
 
       if (command[0] != '-')
-        isCommand = false; // Wrong Command
+        isCommand = notACmd; // Wrong Command
 
       if (command[1] == cmdsChar[cmdSearchData])
       { // Search Data Command
@@ -79,7 +100,7 @@ int main(int argc, char **argv)
       viewData();
       break;
     case cmdSearchData:
-      searchData(subCommand, param, &isCommand);
+      searchData(subCommand, param);
       break;
     case cmdSearchParams:
       searchDataParameters();

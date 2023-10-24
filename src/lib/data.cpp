@@ -32,7 +32,7 @@ void viewData()
   cout << "v";
 }
 
-void searchData(string dataType, string dataToSearch, bool *isCommand)
+void searchData(string dataType, string dataToSearch)
 {
   cout << "s\n"
        << dataType << '\n'

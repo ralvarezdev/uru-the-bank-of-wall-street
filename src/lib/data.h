@@ -34,7 +34,7 @@ enum searchCmds
 // --- Functions
 int isCharOnArray(char character, char array[], int n);
 void viewData();
-void searchData(string dataType, string dataToSearch, bool *isCommand);
+void searchData(string dataType, string dataToSearch);
 void searchDataParameters();
 void depositMoney();
 void checkoutMoney();
