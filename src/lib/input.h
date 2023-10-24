@@ -4,5 +4,6 @@
 // --- Functions
 void ignoreInput();
 void wrongCommand();
+void pressEnterToContinue();
 
 #endif
