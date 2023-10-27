@@ -6,6 +6,6 @@ using namespace std;
 #define ANSI_ESC_H
 
 // --- Functions
-void printTitle(string message, bool applySgrBgCommand, bool applySgrFgCommand);
+void printTitle(string message, bool applySgrBgCmd, bool applySgrFgCmd, bool warning);
 
 #endif

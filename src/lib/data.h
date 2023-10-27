@@ -2,6 +2,13 @@
 
 using namespace std;
 
+// --- Extern Variables Declaration
+extern char *cmdsPtr;
+extern char *searchCmdsPtr;
+extern const string clear, tab1;
+extern const bool applyBgColor, applyFgColor;
+extern const int nWp;
+
 #ifndef DATA_H
 #define DATA_H
 
@@ -33,8 +40,9 @@ enum searchCmds
 
 // --- Functions
 int isCharOnArray(char character, char array[], int n);
+// int getLengthCharArrayPointer(char *array);
 void viewData();
-void searchData(string dataType, string dataToSearch);
+void searchData(string **params, int m, int n);
 void searchDataParameters();
 void depositMoney();
 void checkoutMoney();
