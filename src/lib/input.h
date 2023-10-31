@@ -16,8 +16,7 @@ enum cmdStatus
   validCmd,
   noCmd,
   wrongMainCmd,
-  missingSearchParams,
-  wrongSearchCmd,
+  wrongSearchDataCmd
 };
 
 // --- Functions

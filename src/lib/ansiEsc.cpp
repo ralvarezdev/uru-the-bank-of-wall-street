@@ -29,6 +29,11 @@ const string sgrFgCmd = "\x1b[38;2;32;32;32m";    // Command to Change the Text 
 const string sgrBgCmdError = "\x1b[48;2;201;42;42m";
 const string sgrFgCmdError = "\x1b[38;2;255;255;255m";
 
+// --- Functions Prototypes
+void printTitle(string message, bool applySgrBgCmd, bool applySgrFgCmd, bool warning);
+
+// --- Functions
+
 // Function to Print Title with Customed Colors
 void printTitle(string message, bool applySgrBgCmd, bool applySgrFgCmd, bool warning)
 {

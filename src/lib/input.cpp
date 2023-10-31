@@ -4,6 +4,13 @@
 
 using namespace std;
 
+// --- Function Prototypes
+void ignoreInput();
+void wrongCommand(int commandStatus);
+void pressEnterToContinue(string message, bool warning);
+
+// --- Functions
+
 // This prevents the program to crash if there's more input
 void ignoreInput()
 {
@@ -23,10 +30,8 @@ void wrongCommand(int commandStatus)
     message.append((commandStatus == noCmd) ? "No" : "Wrong");
     message.append(" Command. Press ENTER to Display Help Message");
     break;
-  case missingSearchParams:
-  case wrongSearchCmd:
-    message.append((commandStatus == missingSearchParams) ? "Missing Parameters" : "Wrong Command");
-    message.append(". Press ENTER to Display Search Data Parameters Message");
+  case wrongSearchDataCmd:
+    message.append("Wrong Command. Press ENTER to Display Search Data Parameters Message");
     break;
   }
   pressEnterToContinue(message, true);

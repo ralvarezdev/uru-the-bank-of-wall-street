@@ -3,9 +3,8 @@
 using namespace std;
 
 // --- Extern Variables Declaration
-extern char *cmdsPtr;
-extern char *searchCmdsPtr;
-extern const string clear, tab1;
+extern char *cmdsPtr, *fieldCmdsPtr;
+extern const string clear, tab1, tab2;
 extern const bool applyBgColor, applyFgColor;
 extern const int nWp;
 
@@ -20,6 +19,7 @@ enum cmds
   cmdViewData,
   cmdSearchData,
   cmdSearchParams,
+  cmdHowToUseSearchData,
   cmdDepositMoney,
   cmdCheckoutMoney,
   cmdTransferMoney,
@@ -44,6 +44,7 @@ int isCharOnArray(char character, char array[], int n);
 void viewData();
 void searchData(string **params, int m, int n);
 void searchDataParameters();
+void howToUseSearchData();
 void depositMoney();
 void checkoutMoney();
 void transferMoney();
