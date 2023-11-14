@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include "clients.h"
 #include "ansiEsc.h"
 #include "data.h"
 #include "input.h"
@@ -16,16 +17,18 @@ using namespace terminal;
 // The Index of each Character is Related to the Enum Value of the Same Command or Subcommand
 int cmdsChar[cmdEnd] = {'v', 'f', 'd', 'c', 't', 'F', 'S', 'x', 'y', 'h', 'e', 'a', 's'};
 int subCmdsChar[subCmdEnd] = {'f', 's'};
-int fieldCmdsChar[fieldEnd] = {'i', 'n', 'a', 't', 's', '.'};
-int sortByCmdsChar[sortByEnd] = {'i', 'I', 'n', 'N', 'a', 'A', 't', 'T', 's', 'S'};
+int fieldCmdsChar[fieldEnd] = {'i', 'n', 't', 's', 'a', '.'};
+int sortByCmdsChar[sortByEnd] = {'i', 'I', 'n', 'N', 't', 'T', 's', 'S', 'a', 'A'};
 
 // Command Title
-string fieldCmdsStr[fieldEnd] = {"Id", "Client Name", "Account Number", "Account Type", "Suspended Status"};
+string accountStr[accountEnd] = {"current", "debit"};
+string fieldCmdsStr[fieldEnd] = {"Id", "Client Name", "Account Type", "Suspended Status", "Account Number"};
 
 // --- Extern Variables and Constants Assignment
 int *cmdsPtr = cmdsChar;
 int *subCmdsPtr = subCmdsChar;
 int *fieldCmdsCharPtr = fieldCmdsChar;
+string *accountPtr = accountStr;
 string *fieldCmdsStrPtr = fieldCmdsStr;
 int *sortByCmdsPtr = sortByCmdsChar;
 
@@ -82,8 +85,15 @@ void viewClients(Client clients[], int nClientsRead, bool fields[], int m, int s
   cout << clear;
   printTitle("Clients Fields", applyBgColor, applyFgColor, false);
   printArray(fieldsStr, m, "Fields");
+
   printTitle("Sort By Parameters", applyBgColor, applyFgColor, false);
   printArray(sortByStr, n, "Sort By");
+
+  pressEnterToCont("Press ENTER to Continue", false);
+
+  sortClients(clients, nClientsRead, sortBy, sortByEnd); // Sort Clients
+  printClients(clients, nClientsRead, fields, m);        // Print Clients
+
   pressEnterToCont("Press ENTER to Continue", false);
 }
 
@@ -326,12 +336,15 @@ void print2DArray(string **params, int m, int n, string paramsTitle[])
 // Function to Print Clients
 void printClients(Client clients[], int m, bool *fields, int n)
 {
-  const int nId = 5;             // Number of Characters for Id
-  const int nAccountNumber = 15; // ... for Duration
-  int nName = nChar;             // Decrease the Number of Characters Used by the Name Field
+  const int nId = 15;            // Number of Characters for Id
+  const int nAccountType = 15;   // ... for Account Type
+  const int nSuspended = 18;     // ... for Suspended Status
+  const int nAccountNumber = 20; // ... for Account Number
+
+  int nName = nChar; // Decrease the Number of Characters Used by the Name Field
 
   // Number of Characters per Field
-  int fieldsNChar[fieldEnd - 1] = {nId, 0, nAccountNumber};
+  int fieldsNChar[fieldEnd - 1] = {nId, 0, nAccountType, nSuspended, nAccountNumber};
 
   for (int i = 0; i < n; i++)
     if (fields[i] && i != fieldName)
@@ -346,8 +359,7 @@ void printClients(Client clients[], int m, bool *fields, int n)
   cout << reset << '\n';
 
   // Print Clients
-  int *date;
-  string title, director;
+  string temp;
 
   for (int i = 0; i < m; i++)
   {
@@ -362,9 +374,21 @@ void printClients(Client clients[], int m, bool *fields, int n)
       else
         cout << clients[i].name.substr(0, nName - 4) << "... ";
 
+    // Client Account Type
+    if (fields[fieldAccountType])
+      cout << setw(nAccountType) << setfill(' ') << accountPtr[clients[i].type];
+
+    // Client Suspended Status
+    if (fields[fieldSuspended])
+    {
+      temp = (!clients[i].suspended) ? "false" : "true";
+      cout << setw(nSuspended) << setfill(' ') << temp;
+    }
+
     // Client Account Number
     if (fields[fieldAccountNumber])
-      cout << setw(nAccountNumber) << setfill(' ') << clients[i].account;
+      cout << setw(nAccountNumber) << setfill(' ') << fixed
+           << setprecision(0) << clients[i].account;
 
     cout << '\n';
   }

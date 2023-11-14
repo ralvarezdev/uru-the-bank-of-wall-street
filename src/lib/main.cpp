@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include "clients.h"
 #include "ansiEsc.h"
 #include "data.h"
 #include "input.h"
@@ -46,10 +47,8 @@ int main(int argc, char **argv)
 
   changeCwdToData(argv[0]); // Change Current Working Path to 'src/data'
 
-  /*
   Client *clients = new Client[nClients]; // Allocate Memory
-   nClientsRead = getClients(clients);     // Get Clients
-  */
+  nClientsRead = getClients(clients);     // Get Clients
 
   while (!exit) // Main While Loop of the Program
   {
@@ -134,8 +133,6 @@ int main(int argc, char **argv)
     else if (index.main == cmdViewClients || index.main == cmdFilterClients)
     {                                                         // Checks if the View Clients or Search Clients Command is Typed Correctly
       bool isViewClientsCmd = (index.main == cmdViewClients); // Boolean to Check if the Current Command is View Clients
-
-      getline(stream, inputWord, ' '); // Get Subcommand
 
       int sortByOrder[sortByEnd / 2], sortByCounter = 0; // Save Sorting Order
       for (int i = 0; i < sortByEnd / 2; i++)
@@ -313,7 +310,7 @@ int main(int argc, char **argv)
         switch (index.main)
         {
         case cmdViewClients:
-          // viewClients(clients, nClientsRead, viewClientsCmd.params, fieldEnd, viewClientsCmd.sortBy, sortByEnd / 2);
+          viewClients(clients, nClientsRead, viewClientsCmd.params, fieldEnd, viewClientsCmd.sortBy, sortByEnd / 2);
           break;
         case cmdFilterClients:
           // filterClients(filterClientsCmd.paramsPtr, fieldEnd - 1, maxParamPerSubCmd, filterClientsCmd.sortBy, sortByEnd / 2);
@@ -362,7 +359,7 @@ int main(int argc, char **argv)
       timesExec++;
     }
   }
-  // delete[] clients; // Deallocate Memory
+  delete[] clients; // Deallocate Memory
 }
 
 // --- Functions

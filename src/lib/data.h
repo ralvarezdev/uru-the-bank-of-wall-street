@@ -7,7 +7,7 @@ using namespace clients;
 
 // --- Extern Variables Declaration
 extern int *cmdsPtr, *subCmdsPtr, *fieldCmdsCharPtr, *sortByCmdsPtr;
-extern string *fieldCmdsStrPtr;
+extern string *fieldCmdsStrPtr, *accountPtr;
 
 #ifndef DATA_H
 #define DATA_H

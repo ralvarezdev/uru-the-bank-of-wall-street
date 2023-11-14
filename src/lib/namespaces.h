@@ -5,6 +5,11 @@ using namespace std;
 #ifndef NAMESPACES_H
 #define NAMESPACES_H
 
+namespace files
+{
+  const char sep = ','; // Separators
+}
+
 namespace terminal
 {
   // - ANSI Escape Code
@@ -58,7 +63,8 @@ namespace clients
   {
     accountCurrent,
     accountDebit,
-    accountEnd
+    errorAccount,
+    accountEnd // To get the number of Account Types. SHOULD BE AT THE END
   };
 
   // - Client Structure
@@ -66,12 +72,13 @@ namespace clients
   {
     int id;         // Client ID
     string name;    // Client Name
-    int account;    // Client Account Number
+    double account; // Client Account Number
     int type;       // Client Account Type
     bool suspended; // If the Account was Suspended
   };
 
-  const int nClients = 10000; // Max Number of Clients
+  const int nClients = 10000;                   // Max Number of Clients
+  const string clientsFilename = "clients.csv"; // Clients Filename
 }
 
 namespace commands
@@ -99,7 +106,7 @@ namespace commands
   {
     subCmdField,
     subCmdSortBy,
-    subCmdEnd
+    subCmdEnd // To get the number of Subcommands. SHOULD BE AT THE END
   };
 
   // - Clients Fields
@@ -110,11 +117,11 @@ namespace commands
   {
     fieldId,
     fieldName,
-    fieldAccountNumber,
     fieldAccountType,
     fieldSuspended,
+    fieldAccountNumber,
     fieldAll,
-    fieldEnd
+    fieldEnd // To get the number of Fields. SHOULD BE AT THE END
   };
 
   // - Sort By Commands
@@ -126,12 +133,12 @@ namespace commands
     sortByIdD,
     sortByNameA,
     sortByNameD,
-    sortByAccountA,
-    sortByAccountD,
     sortByTypeA,
     sortByTypeD,
     sortBySuspendedA,
     sortBySuspendedD,
+    sortByAccountA,
+    sortByAccountD,
     sortByEnd // To get the number of Sort By Commands. SHOULD BE AT THE END
   };
 
