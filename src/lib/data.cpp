@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include "clients.h"
 #include "ansiEsc.h"
@@ -9,6 +10,7 @@
 #include "namespaces.h"
 
 using namespace std;
+using namespace files;
 using namespace commands;
 using namespace terminal;
 
@@ -22,7 +24,7 @@ int sortByCmdsChar[sortByEnd] = {'i', 'I', 'n', 'N', 't', 'T', 's', 'S', 'a', 'A
 
 // Command Title
 string accountStr[accountEnd] = {"current", "debit"};
-string fieldCmdsStr[fieldEnd] = {"Id", "Client Name", "Account Type", "Suspended Status", "Account Number"};
+string fieldCmdsStr[fieldEnd] = {"Id", "Client Name", "Account Type", "Account Status", "Account Number"};
 
 // --- Extern Variables and Constants Assignment
 int *cmdsPtr = cmdsChar;
@@ -45,7 +47,7 @@ void howToUseFilterClients();
 void depositMoney();
 void checkoutMoney();
 void transferMoney();
-void suspendAccount();
+void changeStatus(Client clients[], int nClientsRead);
 void printArray(string *params, int m, string paramTitle);
 void print2DArray(string **params, int m, int n, string paramsTitle[]);
 void printClients(Client clients[], int m, bool *fields, int n);
@@ -62,7 +64,21 @@ int isCharOnArray(int character, int array[], int n)
   return -1;
 }
 
-// TO DEVELOP
+// Function to Add Clients to clients.csv
+void addClients(Client clients[], int *nClientsRead)
+{
+  while (true)
+  {
+    cout << clear;
+    printTitle("Add Client", applyBgColor, applyFgColor, false);
+
+    cout << '\n';
+    *nClientsRead = addClientToFile(clients, *nClientsRead);
+
+    if (!booleanQuestion("Do you want to Add more Clients?"))
+      break;
+  }
+}
 
 // Function to View Clients Stored in clients.csv
 void viewClients(Client clients[], int nClientsRead, bool fields[], int m, int sortBy[], int n)
@@ -222,9 +238,70 @@ void transferMoney()
   cout << "t";
 }
 
-void suspendAccount()
+// Function to Change the Status of a Client
+void changeStatus(Client clients[], int nClientsRead)
 {
-  cout << "S";
+  string temp;
+  int id, index, clientStatus;
+  string message;
+
+  cout << clear;
+  printTitle("Change Account Status", applyBgColor, applyFgColor, false); // Examples of the Usage of the Search Command
+  cout << '\n';
+
+  while (true)
+    try // Get Client ID
+    {
+      cout << "Client ID to Change Status: ";
+      getline(cin, temp);
+      id = stoi(temp);
+      break;
+    }
+    catch (...)
+    {
+      wrongClientData(invalidClientId);
+    }
+
+  clientStatus = checkClient(clients, nClientsRead, id, fieldId, &index); // Check if the Clients Exists
+
+  if (clientStatus != clientFound)
+    message = "Error 404: Client Not Found. Run \"Add Client Command\"";
+  else if (clientStatus != invalidArgument)
+  {
+    bool suspend = booleanQuestion("Do you want to Suspend a Client?"); // Ask wether to Suspend or Active Account
+    cout << '\n';
+
+    if (clients[index].suspended == suspend)
+      message = "Client Found: Nothing to Change";
+    else
+    {
+      message = "Client Found: Changed Status";
+
+      clients[index].suspended = suspend; // Change Status of Client
+
+      ifstream infile(clientsFilename);
+      ofstream outfile(clientsFilename);
+
+      string header;
+      getline(infile, header); // Get Header line from clients.csv
+
+      outfile << header << '\n'; // Write Header
+
+      string accountType, suspended;
+
+      for (int i = 0; i < nClientsRead; i++) // Write to File
+      {
+        accountType = (clients[i].type) ? "debit" : "current"; // Get Account Type
+        suspended = (clients[i].suspended) ? "true" : "false"; // Get Account Status
+
+        outfile << clients[i].id << sep << clients[i].name << sep
+                << setw(10) << setfill('0') << right << fixed << setprecision(0) << clients[i].account << left
+                << sep << accountType << sep << suspended << '\n';
+      }
+    }
+    printClientInfo(clients[index]);
+  }
+  pressEnterToCont(message, (clientStatus == clientFound) ? false : true);
 }
 
 // --- Functions For Output Styling
@@ -284,6 +361,8 @@ void printExamples(string cmds[], string explanations[], int n)
 void printClientInfo(Client client)
 {
   int nCharContent = nChar - nCharField;
+  string accountType = accountStr[client.type];                   // Get Client Type
+  string suspended = (client.suspended) ? "Suspended" : "Active"; // Get Client Status
 
   printTitle("Client Info", applyBgColor, applyFgColor, false);
 
@@ -295,7 +374,9 @@ void printClientInfo(Client client)
   else
     cout << client.name.substr(0, nCharContent - 4) << "... " << '\n';
 
-  cout << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountNumber] << client.account << '\n'; // Print Client Account Number
+  cout << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountNumber] << client.account << '\n' // Print Client Account Number
+       << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountType] << accountType << '\n'      // Print Client Account Type
+       << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldSuspended] << suspended << '\n';         // Print Client Suspend Status
 }
 
 // Function to Print a 1D Array
@@ -381,7 +462,7 @@ void printClients(Client clients[], int m, bool *fields, int n)
     // Client Suspended Status
     if (fields[fieldSuspended])
     {
-      temp = (!clients[i].suspended) ? "false" : "true";
+      temp = (clients[i].suspended) ? "Suspended" : "Active";
       cout << setw(nSuspended) << setfill(' ') << temp;
     }
 

@@ -49,6 +49,8 @@ namespace clients
   enum invalidClient
   {
     invalidClientId,
+    invalidClientAccountNumber,
+    invalidArgument, // Can't Search on Fields that doesn't have Unique Values
   };
 
   // - Client Status

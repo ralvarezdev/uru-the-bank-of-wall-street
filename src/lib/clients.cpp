@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include "input.h"
+#include <iomanip>
 #include "clients.h"
 #include "namespaces.h"
 
@@ -13,6 +14,7 @@ using namespace clients;
 
 // --- Functions Prototypes
 int getClients(Client clients[]);
+int addClientToFile(Client clients[], int nClientsRead);
 void sortClients(Client *clients, int m, int sortBy[], int n);
 void clientsMergeSort(Client *clients, int n, int sortByIndex);
 void clientsMerge(Client *clients, Client *sorted, int low, int mid, int high, int sortByIndex);
@@ -27,9 +29,13 @@ int getClients(Client clients[])
 
   ifstream infile(clientsFilename);
 
-  if (!infile.is_open()) // Couldn't Access to infile
+  if (!infile.is_open())
+  { // Couldn't Access to infile
     pressEnterToCont("Error: File Not Found. Press ENTER to go Back to Main Menu", true);
-  else
+    return -1;
+  }
+
+  try
   {
     getline(infile, line); // Remove First Line, which is Used as a Title
 
@@ -70,6 +76,86 @@ int getClients(Client clients[])
       count = 0;
     }
     infile.close();
+  }
+  catch (...)
+  {
+    pressEnterToCont("An Error Ocurred when Loading movies.csv. It has been Manipulated", true);
+    return -1;
+  }
+  return nClientsRead;
+}
+
+// Function to Add Client
+int addClientToFile(Client clients[], int nClientsRead)
+{
+  if (nClientsRead >= nClients)
+    pressEnterToCont("The Maximum Number of Clients has been Reached", true);
+  else
+  {
+    Client newClient = Client();
+
+    bool check;
+    int iter, check, index;
+    string temp, date, accountType;
+
+    newClient.suspended = true; // New Clients will have to wait for an Admin to Remove their Suspension
+    string suspended = (newClient.suspended) ? "true" : "false";
+
+    while (true) // Get Client ID
+      try
+      {
+        cout << "ID: ";
+        getline(cin, temp);
+        newClient.id = stoi(temp);
+
+        // The Id has already been Added to that File
+        check = checkClient(clients, nClientsRead, newClient.id, fieldId, &index);
+        if (check != clientNotFound)
+          throw(-1);
+        else
+          break;
+      }
+      catch (...)
+      {
+        wrongClientData(invalidClientId);
+      }
+
+    cout << "Name: "; // Get Client Name
+    getline(cin, newClient.name);
+
+    while (true) // Get Client Account Number
+      try
+      {
+        cout << "Account Number: ";
+        getline(cin, temp);
+        newClient.account = stoi(temp);
+
+        // The Account Number has already been Added to that File
+        check = checkClient(clients, nClientsRead, newClient.account, fieldAccountNumber, &index);
+        if (check != clientNotFound)
+          throw(-1);
+        else
+          break;
+      }
+      catch (...)
+      {
+        wrongClientData(invalidClientId);
+      }
+
+    check = booleanQuestion("Do you Want to Create a Debit (Y) or a Current (N) Account?");
+    newClient.type = (check) ? accountDebit : accountCurrent;
+    accountType = accountPtr[newClient.type]; // Get Account Type
+
+    clients[nClientsRead++] = newClient;
+
+    ofstream outfile(clientsFilename, ios::app); // Write to File
+    outfile << newClient.id << sep << newClient.name << sep
+            << setw(10) << setfill('0') << right << fixed << setprecision(0) << newClient.account << left
+            << sep << accountType << sep << suspended << '\n';
+
+    outfile.close();
+
+    pressEnterToCont("Client Added Successfully!", false);
   }
   return nClientsRead;
 }

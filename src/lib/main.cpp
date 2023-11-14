@@ -50,6 +50,9 @@ int main(int argc, char **argv)
   Client *clients = new Client[nClients]; // Allocate Memory
   nClientsRead = getClients(clients);     // Get Clients
 
+  if (nClientsRead == -1)
+    return -1; // An Error Ocurred
+
   while (!exit) // Main While Loop of the Program
   {
     cmd = Cmd();        // Initialize Command Structure to 0
@@ -352,8 +355,11 @@ int main(int argc, char **argv)
     case cmdExit:
       exit = true;
       break;
+    case cmdAddClient:
+      addClients(clients, &nClientsRead);
+      break;
     case cmdSuspendAccount:
-      suspendAccount();
+      changeStatus(clients, nClientsRead);
       break;
     default: // Help Message
       timesExec++;
@@ -387,7 +393,7 @@ void helpMessage()
        << tab1 << addBrackets(cmdsPtr[cmdExit]) << " Exit\n"
        << "Admin Privileges:\n"
        << tab1 << addBrackets(cmdsPtr[cmdAddClient]) << " Add Client\n"
-       << tab1 << addBrackets(cmdsPtr[cmdSuspendAccount]) << " Suspend Accounts\n";
+       << tab1 << addBrackets(cmdsPtr[cmdSuspendAccount]) << " Change Client Status\n";
 }
 
 // Function to Change Current Working Directory to 'src/data'

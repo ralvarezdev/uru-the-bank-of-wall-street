@@ -4,12 +4,15 @@
 #include "namespaces.h"
 
 using namespace std;
+using namespace clients;
 using namespace terminal;
 using namespace commands;
 
 // --- Function Prototypes
 // void ignoreInput();
-void wrongCommand(cmdStatus cmdStatus);
+bool booleanQuestion(string message);
+void wrongCommand(invalidClient cmdStatus);
+void wrongClientData(invalidClient wrongData);
 void pressEnterToCont(string message, bool warning);
 
 // --- Functions
@@ -22,6 +25,33 @@ void ignoreInput()
     cin.clear();
 }
 */
+
+// Boolean Question
+bool booleanQuestion(string message)
+{
+  string input;
+  char c;
+
+  while (true)
+  {
+    cout << "- " << message << " [y/N] ";
+    getline(cin, input);
+
+    c = tolower(input[0]);
+    if (c == 'y')
+    {
+      cout << '\n';
+      return true;
+    }
+    else if (c == 'n')
+    {
+      cout << '\n';
+      return false;
+    }
+    else
+      wrongCommand(wrongBooleanAnswer);
+  }
+}
 
 // Function to Check if the Command Entered by the User is Correct
 void wrongCommand(cmdStatus cmdStatus)
@@ -52,6 +82,23 @@ void wrongCommand(cmdStatus cmdStatus)
     else if (cmdStatus == wrongSortByParam || cmdStatus == wrongFieldParam || cmdStatus == wrongField)
       message.append((cmdStatus == wrongSortByParam) ? "Wrong Sort By Parameter" : "Wrong Field");
     message.append(". Press ENTER to Display Search Data Parameters Message");
+    break;
+  }
+  pressEnterToCont(message, true);
+}
+
+// Function to Check if the Client Data Typed by the User is Correct
+void wrongClientData(invalidClient wrongData)
+{
+  string message = "Invalid: Client ";
+
+  switch (wrongData)
+  {
+  case invalidClientId:
+    message.append("ID");
+    break;
+  case invalidClientAccountNumber:
+    message.append("Account Number");
     break;
   }
   pressEnterToCont(message, true);
