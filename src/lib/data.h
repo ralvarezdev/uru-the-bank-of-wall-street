@@ -1,50 +1,45 @@
 #include <string>
+#include <typeinfo>
+#include "namespaces.h"
 
 using namespace std;
+using namespace clients;
 
 // --- Extern Variables Declaration
-extern char *cmdsPtr, *fieldCmdsPtr;
-extern const string clear, tab1, tab2;
-extern const bool applyBgColor, applyFgColor;
-extern const int nWp;
+extern int *cmdsPtr, *subCmdsPtr, *fieldCmdsCharPtr, *sortByCmdsPtr;
+extern string *fieldCmdsStrPtr;
 
 #ifndef DATA_H
 #define DATA_H
 
-// --- Enums
+// --- Templates
 
-// - Main Commands
-enum cmds
-{
-  cmdViewData,
-  cmdSearchData,
-  cmdSearchParams,
-  cmdHowToUseSearchData,
-  cmdDepositMoney,
-  cmdCheckoutMoney,
-  cmdTransferMoney,
-  cmdHelp,
-  cmdExit,
-  cmdSuspendAccount,
-  cmdEnd // To get the number of Commands. SHOULD BE AT THE END
-};
+// --- Templates
 
-// - Search Data SubCommands
-enum searchCmds
+// Template to Return a String that's Surrounded by Brackets
+template <typename T>
+string addBrackets(T message)
 {
-  searchClientId,
-  searchClientName,
-  searchAccountNumber,
-  searchEnd // To get the number of Search Data SubCommands. SHOULD BE AT THE END
-};
+  string addedBrackets;
+
+  if (typeid(T) == typeid(const int)) // Checks if it's a Char
+    addedBrackets += message;         // Works fine if the  Message is a Char
+  else
+    addedBrackets = message; // Message is of type String
+
+  addedBrackets.insert(0, 1, '[');
+
+  return addedBrackets.insert(addedBrackets.length(), 1, ']');
+}
 
 // --- Functions
-int isCharOnArray(char character, char array[], int n);
-// int getLengthCharArrayPointer(char *array);
-void viewData();
-void searchData(string **params, int m, int n);
-void searchDataParameters();
-void howToUseSearchData();
+int isCharOnArray(int character, int array[], int n);
+void viewClients(Client clients[], int nClientsRead, bool fields[], int m, int sortBy[], int n);
+void filterClients(Client clients[], int nMoviesRead, string **fieldParams, int l, int m, int sortBy[], int n);
+void fields(); // As a Parameter or as a Subcommand
+void sortByParameters();
+void howToUseViewClients();
+void howToUseFilterClients();
 void depositMoney();
 void checkoutMoney();
 void transferMoney();

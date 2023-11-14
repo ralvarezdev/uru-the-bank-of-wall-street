@@ -1,45 +1,68 @@
 #include <iostream>
 #include "ansiEsc.h"
 #include "input.h"
+#include "namespaces.h"
 
 using namespace std;
+using namespace terminal;
+using namespace commands;
 
 // --- Function Prototypes
-void ignoreInput();
-void wrongCommand(int commandStatus);
-void pressEnterToContinue(string message, bool warning);
+// void ignoreInput();
+void wrongCommand(cmdStatus cmdStatus);
+void pressEnterToCont(string message, bool warning);
 
 // --- Functions
 
+/*
 // This prevents the program to crash if there's more input
 void ignoreInput()
 {
   while (getchar() != '\n')
     cin.clear();
 }
+*/
 
 // Function to Check if the Command Entered by the User is Correct
-void wrongCommand(int commandStatus)
+void wrongCommand(cmdStatus cmdStatus)
 {
   string message = "ERROR: ", err;
 
-  switch (commandStatus)
+  switch (cmdStatus)
   {
+  case wrongBooleanAnswer:
+    message.append("It's a Yes/No Question. You must type 'y', 'Y' or 'n', 'N'");
+    break;
   case noCmd:
   case wrongMainCmd:
-    message.append((commandStatus == noCmd) ? "No" : "Wrong");
-    message.append(" Command. Press ENTER to Display Help Message");
+  case wrongSubCmd:
+    if (cmdStatus == noCmd)
+      message.append("No Command");
+    else
+      message.append((cmdStatus == wrongMainCmd) ? "Wrong Main Command" : "Wrong Subcommand");
+    message.append(". Press ENTER to Display Help Message");
     break;
-  case wrongSearchDataCmd:
-    message.append("Wrong Command. Press ENTER to Display Search Data Parameters Message");
+  case wrongViewClientsCmd:
+  case wrongFilterClientsCmd:
+  case wrongSortByParam:
+  case wrongFieldParam:
+  case wrongField:
+    if (cmdStatus == wrongFilterClientsCmd || cmdStatus == wrongViewClientsCmd)
+      message.append("Wrong Command");
+    else if (cmdStatus == wrongSortByParam || cmdStatus == wrongFieldParam || cmdStatus == wrongField)
+      message.append((cmdStatus == wrongSortByParam) ? "Wrong Sort By Parameter" : "Wrong Field");
+    message.append(". Press ENTER to Display Search Data Parameters Message");
     break;
   }
-  pressEnterToContinue(message, true);
+  pressEnterToCont(message, true);
 }
 
 // Function to Stop the Program Flow while the User doesn't press the ENTER key
-void pressEnterToContinue(string message, bool warning)
+void pressEnterToCont(string message, bool warning)
 {
+  string temp;
+
   printTitle(message, applyBgColor, applyFgColor, warning);
-  ignoreInput();
+  getline(cin, temp);
+  // ignoreInput();
 }

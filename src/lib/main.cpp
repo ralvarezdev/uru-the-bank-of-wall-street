@@ -1,12 +1,17 @@
+#include <algorithm>
+#include <filesystem>
 #include <iostream>
-#include <string>
-#include <string.h>
 #include <sstream>
+#include <string>
 #include "ansiEsc.h"
 #include "data.h"
 #include "input.h"
+#include "namespaces.h"
 
 using namespace std;
+using namespace clients;
+using namespace commands;
+using namespace terminal;
 
 /*
 --- NOTES
@@ -15,45 +20,63 @@ That's the reason why the program is written like this
 */
 
 // --- Extern Variables and Constants Declaration
-extern const string clear, tab1;
-extern const bool applyBgColor, applyFgColor;
-extern char *cmdsPtr, *searchCmdsPtr;
+extern int *cmdsPtr, *subCmdsPtr, *fieldCmdsCharPtr, *sortByCmdsPtr;
+
+// --- Global Variables
+int nClientsRead = 0; // Number of Clients that had been Read and Copied from clients.csv
 
 // --- Function Prototypes
 void helpMessage();
+void changeCwdToData(string path);
 
 int main(int argc, char **argv)
 {
-  const int maxParamPerSubCmd = 9; // Max Number of Parameters per Subcommand
+  std::ios::sync_with_stdio(false); // Desynchronize C++ Streams from C I/O Operations to Increase Performance
+
+  ViewClientsCmd viewClientsCmd; // Used to Save the Parameters Typed by the User for the Given Command
+  FilterClientsCmd filterClientsCmd;
+  Cmd cmd;
+  CmdIndex index;
 
   bool exit = false;                      // Tells the Program if the User wants to Exit the Program
-  char cmd, subCmd;                       // Command, SubCommand
-  int isCmd = validCmd;                   // Used for Checking if the Command is Valid or Not. If not, it Stores the Reason
-  int cmdIndex, subCmdIndex;              // Used to Save the Index of the Command on its Corresponding Array
-  int paramsCounter[searchEnd];           // Search Parameters Counter
+  bool moreInput, isField;                // Boolean to Check if there's More Input
+  cmdStatus isCmd = validCmd;             // Used for Checking if the Command is Valid or Not. If not, it Stores the Reason
   int timesExec = 0;                      // Number of times the Main While Loop has been executed
   string inputLine, inputWord, inputLong; // Saves the Input of the User, before being Processed by the Program
 
-  // Main While Loop of the Program
-  while (!exit)
-  {
-    string params[searchEnd][maxParamPerSubCmd]; // 2D String Array of Parameters
-    string *ptrParams[searchEnd];                // 1D Pointer Array to to the 2D Array
+  changeCwdToData(argv[0]); // Change Current Working Path to 'src/data'
 
-    for (int i = 0; i < searchEnd; i++)
-    {
-      ptrParams[i] = params[i];
-      paramsCounter[i] = 0; // Reset Parameter Counters to 0
-    }
+  /*
+  Client *clients = new Client[nClients]; // Allocate Memory
+   nClientsRead = getClients(clients);     // Get Clients
+  */
+
+  while (!exit) // Main While Loop of the Program
+  {
+    cmd = Cmd();        // Initialize Command Structure to 0
+    index = CmdIndex(); // Initialize Command Indexes to 0
 
     if (isCmd != validCmd)
     { // If in the Last Execution the User Typed a Wrong Command
       wrongCommand(isCmd);
-      if (isCmd == wrongSearchDataCmd)
+
+      switch (isCmd)
       {
-        searchDataParameters(); // Print the Valid Search Data Parameters
-        howToUseSearchData();   // Print the How-To-Use guide of the Search Data Command
+      case wrongField:
+      case wrongFieldParam:
+        fields(); // Print the Valid Field as Commands or as Parameters
+        break;
+      case wrongSortByParam:
+        sortByParameters(); // Print the Valid Sort By Parameters
+        break;
+      case wrongViewClientsCmd:
+        howToUseViewClients(); // Print the Usage Examples of the View Clients Command
+        break;
+      case wrongFilterClientsCmd:
+        howToUseFilterClients(); // Print Usage Examples of the Filter Clients Commands
+        break;
       }
+
       isCmd = validCmd;
     }
 
@@ -63,12 +86,9 @@ int main(int argc, char **argv)
       {
         inputWord = argv[i];
 
-        size_t found = inputWord.find(' '); // Check if the string contains Whitespaces
-        if (found != string::npos)
-        {                                               // Whitespace Found
-          inputWord.insert(0, 1, '"');                  // Insert a Double Quote at the Beginning of the Input
-          inputWord.insert(inputWord.length(), 1, '"'); // Insert a Double Quote at the End
-        }
+        size_t found = inputWord.find(' ');                               // Check if the string contains Whitespaces
+        if (found != string::npos)                                        // Whitespace Found
+          inputWord.insert(0, 1, '"').insert(inputWord.length(), 1, '"'); // Insert a Double Quote at the Beginning and at the End of the Input
 
         if (i != argc - 1) // Insert Whitespace between Parameters
           inputWord.insert(inputWord.length(), 1, ' ');
@@ -106,70 +126,199 @@ int main(int argc, char **argv)
       continue;
     }
 
-    cmd = inputWord[0];
-    cmdIndex = isCharOnArray(cmd, cmdsPtr, cmdEnd); // Check if the Command is on the Array of Main Commands. Returns -1 if it doesn't exist
+    cmd.main = inputWord[0];
+    index.main = isCharOnArray(cmd.main, cmdsPtr, cmdEnd); // Check if the Command is on the Array of Main Commands. Returns -1 if it doesn't exist
 
-    if (cmdIndex == -1) // If it's not a Valid Command
+    if (index.main == -1) // If it's not a Valid Command
       isCmd = wrongMainCmd;
-    else if (cmdIndex == cmdSearchData)
-    {                           // Checks if the Search Command is Typed Correctly
-      bool isSubcommand = true; // Boolean to Check if there's More Input
+    else if (index.main == cmdViewClients || index.main == cmdFilterClients)
+    {                                                         // Checks if the View Clients or Search Clients Command is Typed Correctly
+      bool isViewClientsCmd = (index.main == cmdViewClients); // Boolean to Check if the Current Command is View Clients
 
       getline(stream, inputWord, ' '); // Get Subcommand
 
-      while (isSubcommand)
+      int sortByOrder[sortByEnd / 2], sortByCounter = 0; // Save Sorting Order
+      for (int i = 0; i < sortByEnd / 2; i++)
+        sortByOrder[i] = -1;
+
+      if (isViewClientsCmd)
+      { // Initialize viewClients Sruct
+        viewClientsCmd = ViewClientsCmd();
+        fill(viewClientsCmd.sortBy, viewClientsCmd.sortBy + sortByEnd, -1); // Initialize Sort By Array
+      }
+      else
       {
-        isSubcommand = false;
+        filterClientsCmd = FilterClientsCmd();
+        fill(filterClientsCmd.sortBy, filterClientsCmd.sortBy + sortByEnd, -1); // Initialize Sort By Array
+      }
 
-        if (inputWord.length() < 3)
-        { // Check if the Command has the Minimum String Length, which is 3
-          isCmd = wrongSearchDataCmd;
-          break; // Break the for-loop
-        }
+      while (true)
+      {
+        if (isCmd != validCmd)
+          break; // Exit this While-loop
+        isCmd = validCmd;
 
-        subCmd = inputWord[2];
-        subCmdIndex = isCharOnArray(subCmd, searchCmdsPtr, searchEnd); // Check if the Command is on the Array of subCommands
+        while (!moreInput && getline(stream, inputWord, ' '))
+          if (inputWord[0] == '-')
+            moreInput = true; // First Parameter Must be a Command
 
-        if (inputWord[0] != '-' || subCmdIndex == -1)
-        { // Wrong Search Subcommand
-          isCmd = wrongSearchDataCmd;
+        if (!moreInput)
+          break; // Exit this While-loop
+        moreInput = false;
+        isField = true;
+
+        if (inputWord.length() < 2)
+        { // Check if the Command has the Minimum String Length
+          isCmd = wrongSubCmd;
           break;
         }
 
-        int paramCounter = paramsCounter[subCmdIndex]; // Counter
-        while (paramCounter < maxParamPerSubCmd && getline(stream, inputWord, ' '))
-        { // Iterate while there's a Parameter and the Parameters Typed for that Subcommand are Less than maxParamPerSubCmds
-          if (inputWord[0] == '"')
-          { // If it Starts with Double Quote, it's a Long Sentence (a Parameter with Multiple Words)
-            if (!getline(stream, inputLong, '"'))
-            {
-              isCmd = wrongSearchDataCmd; // Incomplete Long Parameter
+        // Check if the Command is in the Array of subCommands
+        cmd.sub = inputWord[1];
+        index.sub = isCharOnArray(cmd.sub, subCmdsPtr, subCmdEnd);
+
+        if (index.sub == -1)
+        { // Wrong Subcommand
+          isCmd = wrongSubCmd;
+          break;
+        }
+
+        if (index.sub == subCmdSortBy)
+        { // Get Sort By Parameters
+          while (getline(stream, inputWord, ' '))
+          {
+            if (inputWord[0] == '-')
+            { // It's not a Sort By Parameter
+              moreInput = true;
               break;
             }
-            inputWord.insert(inputWord.length(), 1, ' ');                 // Insert Whitespace at the End
-            inputLong.insert(0, inputWord.substr(1, inputWord.length())); // Insert the Parameter at the Beginning of the String, without the Double Quote
 
-            params[subCmdIndex][paramCounter] = inputLong; // Add Sentence Search Data Parameter
+            cmd.param = inputWord[0];
+            index.param = isCharOnArray(cmd.param, sortByCmdsPtr, sortByEnd); // Check if the Command is in the Sort By Array
+
+            if (index.param == -1)
+            { // Wrong Sort By Command Parameter
+              isCmd = wrongSortByParam;
+              break;
+            }
+
+            if (isViewClientsCmd)
+            { // It will Overwrite the Previous Sorting for this Parameter, if it was Specified
+              if (viewClientsCmd.sortBy[index.param / 2] != -1)
+                sortByOrder[sortByCounter++] = index.param;
+
+              viewClientsCmd.sortBy[index.param / 2] = index.param;
+            }
+            else
+            {
+              if (filterClientsCmd.sortBy[index.param / 2] != -1)
+                sortByOrder[sortByCounter++] = index.param;
+
+              filterClientsCmd.sortBy[index.param / 2] = index.param;
+            }
           }
-          else if (inputWord[0] != '-') // Get Word Input
-          {
-            params[subCmdIndex][paramCounter] = inputWord; // Add Word Search Data Parameter
-          }
-          else
-          {
-            isSubcommand = true;
-            break; // If it's a Command break this For-loop
-          }
-          paramCounter++; // Parameter Counter
+          continue;
         }
-        paramsCounter[subCmdIndex] = paramCounter; // Update Parameter Counter
 
-        if (isCmd == wrongSearchDataCmd)
-          break; // Exit this While-loop
+        getline(stream, inputWord, ' ');
 
-        while (!isSubcommand && getline(stream, inputWord, ' '))
-          if (inputWord[0] == '-')
-            isSubcommand = true; // First Parameter Must be a Command
+        while (isField) // Get Field Parameters
+        {
+          isField = false;
+
+          if (inputWord[0] == '-' && (isViewClientsCmd || (!isViewClientsCmd && inputWord.length() < 3)))
+          { // It's not a Field Command or a Parameter
+            moreInput = true;
+            break;
+          }
+
+          cmd.field = (isViewClientsCmd) ? inputWord[0] : inputWord[2];
+          index.field = isCharOnArray(cmd.field, fieldCmdsCharPtr, fieldEnd); // Check if the Command is in the Field Parameters Array
+
+          if (index.field == -1 || (!isViewClientsCmd && index.field == fieldAll))
+          { // Wrong Field Parameter or Field Command
+            isCmd = (isViewClientsCmd) ? wrongFieldParam : wrongField;
+            break;
+          }
+
+          if (isViewClientsCmd)
+          {
+            viewClientsCmd.params[index.field] = true;
+
+            if (getline(stream, inputWord, ' '))                 // Get the Next Argument
+              if (inputWord[0] == '-' && inputWord.length() < 3) // It's a Subcommand
+                moreInput = true;
+              else if (inputWord[0] != '-' && inputWord.length() > 0)
+                isField = true;
+
+            continue;
+          }
+
+          int *paramCounter; // Counter
+
+          paramCounter = &filterClientsCmd.counter[index.field];
+
+          while (*paramCounter < maxParamPerSubCmd && getline(stream, inputWord, ' '))
+          { // Iterate while there's a Parameter and can be Added to the Array
+            if (inputWord[0] == '"')
+            { // If it Starts with Double Quote, it's a Long Sentence (a Parameter with Multiple Words)
+              if (!getline(stream, inputLong, '"'))
+              { // Incomplete Long Parameter
+                isCmd = wrongFilterClientsCmd;
+                break;
+              }
+
+              inputWord.insert(inputWord.length(), 1, ' ');                 // Insert Whitespace at the End
+              inputLong.insert(0, inputWord.substr(1, inputWord.length())); // Insert the Parameter at the Beginning of the String, without the Double Quote
+              inputWord = inputLong;
+            }
+            else if (inputWord[0] == '-')
+            { // If it's a Command break this For-loop
+              if (inputWord.length() < 3)
+                moreInput = true;
+              else if (inputWord.length() > 2)
+                isField = true;
+              break;
+            }
+            else if (inputWord.length() == 0)
+            { // To Prevent Adding Whitespaces as Parameters-
+              continue;
+            }
+
+            filterClientsCmd.params[index.field][*paramCounter] = inputWord; // Add Parameter to Filter Clients
+
+            *paramCounter += 1; // Parameter Counter
+          }
+
+          while (!isField && !moreInput) // Reached Max Number of Parameters for Command
+            if (!getline(stream, inputWord, ' '))
+              break;
+            else if (inputWord[0] == '-') // Got a Command
+              if (inputWord.length() < 3)
+                moreInput = true;
+              else if (inputWord.length() > 2)
+                isField = true;
+        }
+      }
+
+      for (int i = 0; i < sortByEnd / 2; i++) // Save the Sort By Array based on the Order they were Introduced
+        if (sortByOrder[i] != -1)
+          if (isViewClientsCmd)
+            viewClientsCmd.sortBy[i] = sortByOrder[i];
+          else
+            filterClientsCmd.sortBy[i] = sortByOrder[i];
+
+      if (isCmd == validCmd)
+      {
+        switch (index.main)
+        {
+        case cmdViewClients:
+          // viewClients(clients, nClientsRead, viewClientsCmd.params, fieldEnd, viewClientsCmd.sortBy, sortByEnd / 2);
+          break;
+        case cmdFilterClients:
+          // filterClients(filterClientsCmd.paramsPtr, fieldEnd - 1, maxParamPerSubCmd, filterClientsCmd.sortBy, sortByEnd / 2);
+          break;
+        }
       }
     }
 
@@ -180,19 +329,19 @@ int main(int argc, char **argv)
       continue;
     }
 
-    switch (isCharOnArray(cmd, cmdsPtr, cmdEnd))
+    switch (index.main)
     { // Get Index Position of Character on Command[1] in cmdsChar Array
-    case cmdViewData:
-      viewData();
+    case cmdFieldParameters:
+      fields();
       break;
-    case cmdSearchData:
-      searchData(ptrParams, searchEnd, maxParamPerSubCmd);
+    case cmdSortByParameters:
+      sortByParameters();
       break;
-    case cmdSearchParams:
-      searchDataParameters();
+    case cmdHowToUseViewClients:
+      howToUseViewClients();
       break;
-    case cmdHowToUseSearchData:
-      howToUseSearchData();
+    case cmdHowToUseFilterClients:
+      howToUseFilterClients();
       break;
     case cmdDepositMoney:
       depositMoney();
@@ -213,6 +362,7 @@ int main(int argc, char **argv)
       timesExec++;
     }
   }
+  // delete[] clients; // Deallocate Memory
 }
 
 // --- Functions
@@ -223,17 +373,32 @@ void helpMessage()
   cout << clear;
   printTitle("WELCOME TO THE BANK OF WALL STREET", applyBgColor, applyFgColor, false);
   cout << "Database Commands:\n"
-       << tab1 << "[" << cmdsPtr[cmdViewData] << "] View Data\n"
-       << tab1 << "[" << cmdsPtr[cmdSearchData] << "] Search Data\n"
-       << tab1 << "[" << cmdsPtr[cmdSearchParams] << "] Valid Search Data Subcommands and Parameters\n"
-       << tab1 << "[" << cmdsPtr[cmdHowToUseSearchData] << "] How to Use the Search Data Command\n"
-       << "Transaction Commands:\n"
-       << tab1 << "[" << cmdsPtr[cmdDepositMoney] << "] Deposit Money\n"
-       << tab1 << "[" << cmdsPtr[cmdCheckoutMoney] << "] Checkout Money\n"
-       << tab1 << "[" << cmdsPtr[cmdTransferMoney] << "] Transfer Money\n"
+       << tab1 << addBrackets(cmdsPtr[cmdViewClients]) << " View Clients\n"
+       << tab1 << addBrackets(cmdsPtr[cmdFilterClients]) << " Filter Clients\n"
+       << "Client Commands:\n"
+       << tab1 << addBrackets(cmdsPtr[cmdDepositMoney]) << " Deposit Money\n"
+       << tab1 << addBrackets(cmdsPtr[cmdCheckoutMoney]) << " Checkout Money\n"
+       << tab1 << addBrackets(cmdsPtr[cmdTransferMoney]) << " Transfer Money\n"
+       << "Command Parameters:\n"
+       << tab1 << addBrackets(cmdsPtr[cmdFieldParameters]) << " Client Field Parameters\n"
+       << tab1 << addBrackets(cmdsPtr[cmdSortByParameters]) << " Sort By Parameters\n"
+       << "How-To:\n"
+       << tab1 << addBrackets(cmdsPtr[cmdHowToUseViewClients]) << " How to Use the View Clients Command\n"
+       << tab1 << addBrackets(cmdsPtr[cmdHowToUseFilterClients]) << " How to Use the Filter Clients Command\n"
        << "Other Commands:\n"
-       << tab1 << "[" << cmdsPtr[cmdHelp] << "] Help\n"
-       << tab1 << "[" << cmdsPtr[cmdExit] << "] Exit\n"
+       << tab1 << addBrackets(cmdsPtr[cmdHelp]) << " Help\n"
+       << tab1 << addBrackets(cmdsPtr[cmdExit]) << " Exit\n"
        << "Admin Privileges:\n"
-       << tab1 << "[" << cmdsPtr[cmdSuspendAccount] << "] Suspend Accounts\n";
+       << tab1 << addBrackets(cmdsPtr[cmdAddClient]) << " Add Client\n"
+       << tab1 << addBrackets(cmdsPtr[cmdSuspendAccount]) << " Suspend Accounts\n";
+}
+
+// Function to Change Current Working Directory to 'src/data'
+void changeCwdToData(string path)
+{
+  filesystem::path mainPath = path.substr(0, path.length() - 13); // Path to Main Folder
+  filesystem::path dataDir = "src/data";
+  filesystem::path dataPath = mainPath / dataDir; // Concatenate mainPath with Data Dir
+
+  filesystem::current_path(dataPath); // Change cwd to '.../src/data'
 }

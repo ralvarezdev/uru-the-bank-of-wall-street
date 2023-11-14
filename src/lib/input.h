@@ -1,27 +1,15 @@
 #include <string>
+#include "namespaces.h"
 
 using namespace std;
-
-// --- Extern Variables and Constants Declaration
-extern const bool applyBgColor, applyFgColor;
+using namespace commands;
 
 #ifndef INPUT_H
 #define INPUT_H
 
-// --- Enums
-
-// - Command Status if it's Valid or not
-enum cmdStatus
-{
-  validCmd,
-  noCmd,
-  wrongMainCmd,
-  wrongSearchDataCmd
-};
-
 // --- Functions
-void ignoreInput();
-void wrongCommand(int commandStatus);
-void pressEnterToContinue(string message, bool warning);
+// void ignoreInput();
+void wrongCommand(cmdStatus cmdStatus);
+void pressEnterToCont(string message, bool warning);
 
 #endif
