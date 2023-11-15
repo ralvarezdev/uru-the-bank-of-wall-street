@@ -13,9 +13,10 @@ extern string *accountPtr;
 
 // --- Functions
 int getClients(Client clients[]);
+int filterClients(Client clients[], int filteredIndexes[], int nClientsRead, string **params);
 int addClientToFile(Client clients[], int nClientsRead);
-void sortClients(Client *clients, int m, int sortBy[], int n);
-void clientsMergeSort(Client *clients, int n, int sortByIndex);
+void sortClients(Client clients[], int m, int sortBy[], int n);
+void clientsMergeSort(Client clients[], int n, int sortByIndex);
 
 // --- Templates
 
@@ -30,8 +31,9 @@ clientStatus checkClient(Client clients[], int nClientsRead, T unique, fieldCmds
   else if (field == fieldAccountNumber)
     clientsMergeSort(clients, nClientsRead, sortByAccountA); // Sort Clients by Account Number
 
-  bool found;
-  int value, mid, start = 0, end = nClientsRead - 1;
+  bool found = false;
+  T value;
+  int mid, start = 0, end = nClientsRead - 1;
   string line;
 
   while (start <= end)
@@ -43,8 +45,10 @@ clientStatus checkClient(Client clients[], int nClientsRead, T unique, fieldCmds
       if (field == fieldId)
         value = clients[mid].id;
       else if (field == fieldAccountNumber)
+      {
+        cout << mid << ' ' << clients[mid].account << '\n';
         value = clients[mid].account;
-
+      }
       found = (value == unique);
     }
     catch (...)
@@ -57,7 +61,12 @@ clientStatus checkClient(Client clients[], int nClientsRead, T unique, fieldCmds
 
     if (found)
     {
-      *index = mid;
+      if (field == fieldId)
+        *index = mid;
+      else if (field == fieldAccountNumber)
+        checkClient(clients, nClientsRead, clients[mid].id, fieldId, index); // Get Index of Client with that Account Number when the Array is Sorted by Id
+
+      cout << mid << '\n';
       return clientFound;
     }
     else if (unique > value)

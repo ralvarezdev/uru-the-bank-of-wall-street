@@ -3,12 +3,12 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "transactions.h"
-#include "clients.h"
 #include "ansiEsc.h"
+#include "clients.h"
 #include "data.h"
 #include "input.h"
 #include "namespaces.h"
+#include "transactions.h"
 
 using namespace std;
 using namespace files;
@@ -39,8 +39,8 @@ int *sortByCmdsPtr = sortByCmdsChar;
 
 // --- Function Prototypes
 int isCharOnArray(int character, int array[], int n);
-void viewClients(Client clients[], int nClientsRead, bool fields[], int m, int sortBy[], int n);
-void filterClients(Client clients[], int nMoviesRead, string **fieldParams, int l, int m, int sortBy[], int n);
+void viewClients(Client clients[], int nClientsRead, bool fields[], int sortBy[]);
+void filterClients(Client clients[], int nMoviesRead, string **params, int sortBy[]);
 void validParameters(int nCharTitle);
 void fields();
 void sortByParameters();
@@ -51,10 +51,11 @@ void depositMoney(Client clients[], int nClientsRead);
 void cashoutMoney(Client clients[], int nClientsRead);
 void sendMoney(Client clients[], int nClientsRead);
 void changeStatus(Client clients[], int nClientsRead);
+void printClientInfo(Client client, bool censoreInfo);
 bool clientActionConfirm(clientActions action);
 void printArray(string *params, int m, string paramTitle);
 void print2DArray(string **params, int m, int n, string paramsTitle[]);
-void printClients(Client clients[], int m, bool *fields, int n);
+void printClients(Client clients[], int m, bool *fields);
 int getSortByStr(int sortBy[], string sortByStr[], int n);
 
 // --- Functions
@@ -85,21 +86,21 @@ void addClients(Client clients[], int *nClientsRead)
 }
 
 // Function to View Clients Stored in clients.csv
-void viewClients(Client clients[], int nClientsRead, bool fields[], int m, int sortBy[], int n)
+void viewClients(Client clients[], int nClientsRead, bool fields[], int sortBy[])
 {
-  string fieldsStr[m - 1], sortByStr[n], applied;
+  int m = fieldEnd - 1, n = sortByEnd / 2;
+  string fieldsStr[m], sortByStr[n], applied;
 
   if (fields[fieldAll])
-    for (int i = 0; i < m - 1; i++)
+    for (int i = 0; i < m; i++)
       fields[i] = true;
 
-  for (int i = 0; i < m - 1; i++)
+  for (int i = 0; i < m; i++)
   {
     applied = fields[i] ? "[Y] " : "[N] ";
     fieldsStr[i] = applied.append(fieldCmdsStr[i]); // Data to Print in the Field Parameters Row
   }
 
-  m--;                                    // Get Field Array Length. We don't Count the '.' Command
   n = getSortByStr(sortBy, sortByStr, n); // Get Sort By Array Length
 
   cout << clear;
@@ -112,25 +113,45 @@ void viewClients(Client clients[], int nClientsRead, bool fields[], int m, int s
   pressEnterToCont("Press ENTER to Continue", false);
 
   sortClients(clients, nClientsRead, sortBy, sortByEnd); // Sort Clients
-  printClients(clients, nClientsRead, fields, m);        // Print Clients
+  printClients(clients, nClientsRead, fields);           // Print Clients
 
   pressEnterToCont("Press ENTER to Continue", false);
 }
 
 // Function to Filter Clients
-void filterClients(Client clients[], int nMoviesRead, string **fieldParams, int l, int m, int sortBy[], int n)
+void filterClients(Client clients[], int nClientsRead, string **params, int sortBy[])
 {
+  int l = fieldEnd - 1, m = maxAccountDigits, n = sortByEnd / 2, nClientsFiltered;
+  bool fields[l];
   string sortByStr[n];
 
+  fill(fields, fields + l, true); // Client Fields to Print (All)
   n = getSortByStr(sortBy, sortByStr, n);
 
   cout << clear;
   printTitle("Client Fields Parameters", applyBgColor, applyFgColor, false);
-  print2DArray(fieldParams, l, m, fieldCmdsStr);
+  print2DArray(params, l, m, fieldCmdsStr);
   printTitle("Sort By Parameters", applyBgColor, applyFgColor, false);
   printArray(sortByStr, n, "Sort By");
 
   pressEnterToCont("Press ENTER to Continue", false);
+
+  int *filteredIndexes = new int[nClientsRead]; // Allocate Memory
+
+  nClientsFiltered = filterClients(clients, filteredIndexes, nClientsRead, params); // Filter Clients
+
+  Client *filteredClients = new Client[nClientsFiltered]; // Allocate Memmory
+  for (int i = 0; i < nClientsFiltered; i++)
+    filteredClients[i] = clients[filteredIndexes[i]]; // Save Client that has been Filtered to Array
+
+  sortClients(filteredClients, nClientsFiltered, sortBy, sortByEnd); // Sort Clients
+  printClients(filteredClients, nClientsFiltered, fields);           // Print Clients
+
+  cout << '\n';
+  pressEnterToCont("Press ENTER to Continue", false);
+
+  delete[] filteredClients; // Deallocate Memory
+  delete[] filteredIndexes;
 }
 
 // Function to Print the Two Types of Parameters (Used in Filter Clients Command)
@@ -256,7 +277,7 @@ void depositMoney(Client clients[], int nClientsRead)
     }
 
     cout << '\n';
-    printClientInfo(clients[index]); // Print Client Info
+    printClientInfo(clients[index], true); // Print Client Info
     cout << '\n';
     if (booleanQuestion("Is this your Client Account?"))
       break;
@@ -307,7 +328,7 @@ void cashoutMoney(Client clients[], int nClientsRead)
     }
 
     cout << '\n';
-    printClientInfo(clients[index]); // Print Client Info
+    printClientInfo(clients[index], true); // Print Client Info
     cout << '\n';
     if (booleanQuestion("Is this your Client Account?"))
       break;
@@ -358,7 +379,7 @@ void sendMoney(Client clients[], int nClientsRead)
     }
 
     cout << '\n';
-    printClientInfo(clients[indexFrom]); // Print Client Info
+    printClientInfo(clients[indexFrom], true); // Print Client Info
     cout << '\n';
     if (booleanQuestion("Is this your Client Account?"))
       break;
@@ -384,7 +405,7 @@ void sendMoney(Client clients[], int nClientsRead)
       }
 
       cout << '\n';
-      printClientInfo(clients[indexTo]); // Print Client Info
+      printClientInfo(clients[indexTo], true); // Print Client Info
       cout << '\n';
       if (booleanQuestion("Is this the Account you Want to Send the Money to?"))
         break;
@@ -454,7 +475,7 @@ void changeStatus(Client clients[], int nClientsRead)
       infile.close(); // Close files
       outfile.close();
     }
-    printClientInfo(clients[index]);
+    printClientInfo(clients[index], true);
     pressEnterToCont(message, false);
   }
 }
@@ -533,9 +554,10 @@ void printExamples(string cmds[], string explanations[], int n)
 }
 
 // Function to Print Client Info
-void printClientInfo(Client client)
+void printClientInfo(Client client, bool censoreInfo)
 {
   int nCharContent = nChar - nCharField;
+  int nAccountCensored = 7;                                       // Number of Characters from Account Number that are Censored
   string accountType = accountStr[client.type];                   // Get Client Type
   string suspended = (client.suspended) ? "Suspended" : "Active"; // Get Client Status
 
@@ -549,9 +571,15 @@ void printClientInfo(Client client)
   else
     cout << client.name.substr(0, nCharContent - 4) << "... " << '\n';
 
-  cout << setw(nCharField) << setfill(' ') << fixed << setprecision(0) << fieldCmdsStr[fieldAccountNumber] << client.account << '\n' // Print Client Account Number
-       << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountType] << accountType << '\n'                                  // Print Client Account Type
-       << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldSuspended] << suspended << '\n';                                     // Print Client Suspend Status
+  if (!censoreInfo)
+    cout << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountNumber]
+         << setfill(' ') << fixed << setprecision(0) << client.account << '\n'                        // Print Client Account Number
+         << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountType] << accountType << '\n' // Print Client Account Type
+         << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldSuspended] << suspended << '\n';    // Print Client Suspend Status
+  else
+    cout << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountNumber]
+         << string(nAccountCensored, 'X') << getLastDigits(client.account, maxAccountDigits - nAccountCensored) << '\n' // Print Client Account Number
+         << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountType] << accountType << '\n';                  // Print Client Account Type
 }
 
 // Function to Print a 1D Array
@@ -560,7 +588,7 @@ void printArray(string *params, int n, string paramTitle)
   string param;
 
   cout << setw(nCharTitle) << setfill(' ') << left << paramTitle;
-  for (int i = 0; i < n && params[i].length() != 0; i++)
+  for (int i = 0; i < n && params[i] != "null"; i++)
   {
     param = params[i];
 
@@ -585,12 +613,11 @@ void printArray(string *params, int n, string paramTitle)
 void print2DArray(string **params, int m, int n, string paramsTitle[])
 {
   for (int i = 0; i < m; i++)
-    if (params[i][0].length() != 0)
-      printArray(params[i], n, paramsTitle[i]);
+    printArray(params[i], n, paramsTitle[i]);
 }
 
 // Function to Print Clients
-void printClients(Client clients[], int m, bool *fields, int n)
+void printClients(Client clients[], int m, bool *fields)
 {
   const int nId = 15;            // Number of Characters for Id
   const int nAccountType = 15;   // ... for Account Type
@@ -598,18 +625,16 @@ void printClients(Client clients[], int m, bool *fields, int n)
   const int nAccountNumber = 20; // ... for Account Number
 
   int nName = nChar; // Decrease the Number of Characters Used by the Name Field
+  int n = fieldEnd - 1;
 
-  // Number of Characters per Field
-  int fieldsNChar[fieldEnd - 1] = {nId, 0, nAccountType, nSuspended, nAccountNumber};
-
+  int fieldsNChar[n] = {nId, 0, nAccountType, nSuspended, nAccountNumber}; // Number of Characters per Field
   for (int i = 0; i < n; i++)
     if (fields[i] && i != fieldName)
       nName -= fieldsNChar[i]; // Decrease Number of Characters for Movie's Name FIeld
-
-  fieldsNChar[fieldName] = nName; // Assign Number of Characters for Movie's Name
+  fieldsNChar[fieldName] = nName;
 
   cout << clear << sgrBgCmd << sgrFgCmd;
-  for (int i = 0; i < fieldEnd - 1; i++)
+  for (int i = 0; i < n; i++)
     if (fields[i])
       cout << setw(fieldsNChar[i]) << setfill(' ') << fieldCmdsStr[i]; // Field Title
   cout << reset << '\n';
@@ -643,8 +668,7 @@ void printClients(Client clients[], int m, bool *fields, int n)
 
     // Client Account Number
     if (fields[fieldAccountNumber])
-      cout << setw(nAccountNumber) << setfill(' ') << fixed
-           << setprecision(0) << clients[i].account;
+      cout << fixed << setprecision(0) << setw(nAccountNumber) << setfill(' ') << clients[i].account;
 
     cout << '\n';
   }

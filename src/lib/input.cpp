@@ -1,5 +1,5 @@
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 #include "ansiEsc.h"
 #include "data.h"
 #include "input.h"
@@ -162,7 +162,7 @@ float getFloat(string message, float low, float high)
   while (true)
     try // Get Floats
     {
-      cout << message << " [" << setprecision(precision) << low << '-' << high << "]: ";
+      cout << message << " [" << fixed << setprecision(precision) << low << '-' << high << "]: ";
       getline(cin, temp);
       return stoi(temp);
     }

@@ -3,8 +3,8 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "clients.h"
 #include "ansiEsc.h"
+#include "clients.h"
 #include "data.h"
 #include "input.h"
 #include "namespaces.h"
@@ -29,6 +29,7 @@ int nClientsRead = 0; // Number of Clients that had been Read and Copied from cl
 // --- Function Prototypes
 void helpMessage();
 void changeCwdToData(string path);
+void initPtrArray(string **ptrArray, string array[][maxParamPerSubCmd], int arrayCounter[], int n);
 
 int main(int argc, char **argv)
 {
@@ -134,7 +135,7 @@ int main(int argc, char **argv)
     if (index.main == -1) // If it's not a Valid Command
       isCmd = wrongMainCmd;
     else if (index.main == cmdViewClients || index.main == cmdFilterClients)
-    {                                                         // Checks if the View Clients or Search Clients Command is Typed Correctly
+    {                                                         // Checks if the View Clients or Filter Clients Command is Typed Correctly
       bool isViewClientsCmd = (index.main == cmdViewClients); // Boolean to Check if the Current Command is View Clients
 
       int sortByOrder[sortByEnd / 2], sortByCounter = 0; // Save Sorting Order
@@ -149,7 +150,10 @@ int main(int argc, char **argv)
       else
       {
         filterClientsCmd = FilterClientsCmd();
-        fill(filterClientsCmd.sortBy, filterClientsCmd.sortBy + sortByEnd, -1); // Initialize Sort By Array
+        for (int i = 0; i < fieldEnd - 1; i++)
+          fill(filterClientsCmd.params[i], filterClientsCmd.params[i] + maxParamPerSubCmd, "null");            // Initialize Params to Filter Array
+        initPtrArray(filterClientsCmd.paramsPtr, filterClientsCmd.params, filterClientsCmd.counter, fieldEnd); // Copy Array to Pointer Array
+        fill(filterClientsCmd.sortBy, filterClientsCmd.sortBy + sortByEnd, -1);                                // Initialize Sort By Array
       }
 
       while (true)
@@ -311,10 +315,10 @@ int main(int argc, char **argv)
         switch (index.main)
         {
         case cmdViewClients:
-          viewClients(clients, nClientsRead, viewClientsCmd.params, fieldEnd, viewClientsCmd.sortBy, sortByEnd / 2);
+          viewClients(clients, nClientsRead, viewClientsCmd.params, viewClientsCmd.sortBy);
           break;
         case cmdFilterClients:
-          // filterClients(filterClientsCmd.paramsPtr, fieldEnd - 1, maxParamPerSubCmd, filterClientsCmd.sortBy, sortByEnd / 2);
+          filterClients(clients, nClientsRead, filterClientsCmd.paramsPtr, filterClientsCmd.sortBy);
           break;
         }
       }
@@ -328,7 +332,7 @@ int main(int argc, char **argv)
     }
 
     switch (index.main)
-    { // Get Index Position of Character on Command[1] in cmdsChar Array
+    {
     case cmdFieldParameters:
       fields();
       break;
@@ -390,6 +394,16 @@ void helpMessage()
        << "Admin Privileges:\n"
        << tab1 << addBrackets(cmdsPtr[cmdAddClient]) << " Add Client\n"
        << tab1 << addBrackets(cmdsPtr[cmdSuspendAccount]) << " Change Client Status\n";
+}
+
+// Function to Assign 2D Array to 1D Pointer, and Reset the Counters
+void initPtrArray(string **ptrArray, string array[][maxParamPerSubCmd], int arrayCounter[], int n)
+{
+  for (int i = 0; i < n; i++)
+  {
+    ptrArray[i] = array[i];
+    arrayCounter[i] = 0;
+  }
 }
 
 // Function to Change Current Working Directory to 'src/data'

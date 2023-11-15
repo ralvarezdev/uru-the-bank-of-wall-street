@@ -1,9 +1,9 @@
-#include <iostream>
 #include <fstream>
-#include <sstream>
-#include "input.h"
 #include <iomanip>
+#include <iostream>
+#include <sstream>
 #include "clients.h"
+#include "input.h"
 #include "namespaces.h"
 
 using namespace std;
@@ -14,10 +14,11 @@ using namespace clients;
 
 // --- Functions Prototypes
 int getClients(Client clients[]);
+int filterClients(Client clients[], int filteredIndexes[], int nClientsRead, string **params);
 int addClientToFile(Client clients[], int nClientsRead);
-void sortClients(Client *clients, int m, int sortBy[], int n);
-void clientsMergeSort(Client *clients, int n, int sortByIndex);
-void clientsMerge(Client *clients, Client *sorted, int low, int mid, int high, int sortByIndex);
+void sortClients(Client clients[], int m, int sortBy[], int n);
+void clientsMergeSort(Client clients[], int n, int sortByIndex);
+void clientsMerge(Client clients[], Client sorted[], int low, int mid, int high, int sortByIndex);
 string getLower(string word);
 
 // --- Functions
@@ -84,6 +85,65 @@ int getClients(Client clients[])
     return -1;
   }
   return nClientsRead;
+}
+
+// Function that Returns Clients Indexes that Matched with the Parameters
+int filterClients(Client clients[], int filteredIndexes[], int nClientsRead, string **params)
+{
+  bool matches;
+  clientStatus clientStatus;
+  double account;
+  int tempClientsRead, i, id, index;
+
+  Client *tempClients = new Client[nClientsRead]; // Allocate Memory
+  int *tempIndexes = new int[nClientsRead];
+
+  for (i = 0; i < nClientsRead; i++)
+    filteredIndexes[i] = i; // Save ALL Indexes
+  tempClientsRead = i;
+
+  for (int field = 0; field < fieldEnd - 1; field++)
+    for (int param = 0; param < maxParamPerSubCmd && params[field][param] != "null"; param++)
+    {
+      fill(tempIndexes, tempIndexes + tempClientsRead, -1); // Fill Array with Wrong Values
+
+      for (i = 0; i < tempClientsRead && filteredIndexes[i] != -1; i++)
+        tempClients[i] = clients[filteredIndexes[i]]; // Create Temporary Filtered Clients
+
+      switch (field)
+      {
+      case fieldId:
+        id = stoi(params[field][param]);
+        clientStatus = checkClient(tempClients, tempClientsRead, id, fieldId, &index); // Binary Search to Get the Index
+        if (clientStatus != clientNotFound)
+          tempIndexes[0] = index; // Store Index
+        break;
+        /*
+      case fieldName:
+        id = stoi(params[field][param]);
+        clientStatus = checkClient(tempClients, tempClientsRead, id, fieldId, &index); // Binary Search to Get the Index
+        if (clientStatus != clientNotFound)
+          tempIndexes[0] = index; // Store Index
+        break;
+        */
+      case fieldAccountNumber:
+        account = stod(params[field][param]);
+        clientStatus = checkClient(tempClients, tempClientsRead, account, fieldAccountNumber, &index); // Binary Search
+        if (clientStatus != clientNotFound)
+          tempIndexes[0] = index; // Store Index
+        break;
+      }
+
+      for (i = 0; i < tempClientsRead && tempIndexes[i] != -1; i++)
+        filteredIndexes[i] = tempIndexes[i]; // Save
+      tempClientsRead = i;
+    }
+  int nClientsFiltered = tempClientsRead;
+
+  delete[] tempIndexes; // Deallocate Memory
+  delete[] tempClients;
+
+  return nClientsFiltered;
 }
 
 // Function to Add Client
@@ -159,7 +219,7 @@ int addClientToFile(Client clients[], int nClientsRead)
 }
 
 // Function to Sort Clients (Uses Merge Sort)
-void sortClients(Client *clients, int m, int sortBy[], int n)
+void sortClients(Client clients[], int m, int sortBy[], int n)
 {
   for (int i = 0; i < n; i++)
     if (sortBy[i] != -1)
@@ -169,7 +229,7 @@ void sortClients(Client *clients, int m, int sortBy[], int n)
 // - Merge Sort
 // O(n*logn)
 // Stable
-void clientsMergeSort(Client *clients, int n, int sortByIndex)
+void clientsMergeSort(Client clients[], int n, int sortByIndex)
 {
   int pass, low, high, mid, i;
   Client *sorted = new Client[n]; // Store the Array in the Heap Memory
@@ -214,7 +274,7 @@ void clientsMergeSort(Client *clients, int n, int sortByIndex)
 }
 
 // Function to Merge Clients Subarrays
-void clientsMerge(Client *clients, Client *sorted, int low, int mid, int high, int sortByIndex)
+void clientsMerge(Client clients[], Client sorted[], int low, int mid, int high, int sortByIndex)
 {
   int i = low, j = mid + 1, k = low;
 
