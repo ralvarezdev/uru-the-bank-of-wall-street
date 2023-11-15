@@ -21,6 +21,7 @@ using namespace terminal;
 int cmdsChar[cmdEnd] = {'v', 'f', 'd', 'c', 's', 'F', 'S', 'x', 'y', 'h', 'e', 'a', 'C'};
 int subCmdsChar[subCmdEnd] = {'f', 's'};
 int fieldCmdsChar[fieldEnd] = {'i', 'n', 't', 's', 'a', '.'};
+bool fieldValidCmds[fieldEnd] = {true, true, false, false, true}; // Fields that can be Used for Filter Clients Command
 int sortByCmdsChar[sortByEnd] = {'i', 'I', 'n', 'N', 't', 'T', 's', 'S', 'a', 'A'};
 
 // Command Title
@@ -116,6 +117,8 @@ void viewClients(Client clients[], int nClientsRead, bool fields[], int sortBy[]
   printClients(clients, nClientsRead, fields);           // Print Clients
 
   pressEnterToCont("Press ENTER to Continue", false);
+
+  clientsMergeSort(clients, nClientsRead, sortByIdA); // Return Clients Array to Initial Order
 }
 
 // Function to Filter Clients
@@ -141,6 +144,7 @@ void filterClients(Client clients[], int nClientsRead, string **params, int sort
   nClientsFiltered = filterClients(clients, filteredIndexes, nClientsRead, params); // Filter Clients
 
   Client *filteredClients = new Client[nClientsFiltered]; // Allocate Memmory
+  clientsMergeSort(clients, nClientsRead, sortByIdA);     // Sort Clients by Id
   for (int i = 0; i < nClientsFiltered; i++)
     filteredClients[i] = clients[filteredIndexes[i]]; // Save Client that has been Filtered to Array
 
@@ -175,7 +179,7 @@ void fields()
   cout << '\n';
 
   printTitle("Field as a Command (for Filter Clients)", applyBgColor, applyFgColor, false);
-  for (int i = 0; i < fieldEnd - 1; i++)
+  for (int i = 0; i < fieldEnd - 1 && fieldValidCmds[i]; i++)
   {
     temp = addBrackets(fieldCmdsChar[i]).append(" [param...]");
     cout << tab1 << setw(nCharTitle) << setfill(' ') << temp << "Parameters for Client's " << fieldCmdsStr[i] << '\n';
@@ -427,6 +431,7 @@ void sendMoney(Client clients[], int nClientsRead)
 // Function to Change the Status of a Client
 void changeStatus(Client clients[], int nClientsRead)
 {
+  bool change;
   string temp;
   clientStatus clientStatus;
   int id, index;
@@ -439,20 +444,23 @@ void changeStatus(Client clients[], int nClientsRead)
   id = getClientId("Client ID to Change Status");
   clientStatus = checkClient(clients, nClientsRead, id, fieldId, &index); // Check if the Clients Exists
 
-  if (clientStatus != clientFound)
+  if (clientStatus == clientNotFound)
     checkClientStatus(clientStatus);
   else if (clientStatus != errorStatus)
   {
-    bool suspend = booleanQuestion("Do you want to Suspend a Client?"); // Ask wether to Suspend or Active Account
+    if (clientStatus == clientSuspended) // Ask wether to Suspend or Active Account
+      change = booleanQuestion("Do you want to Activate the Client?");
+    else
+      change = booleanQuestion("Do you want to Suspend the Client?");
     cout << '\n';
 
-    if (clients[index].suspended == suspend)
+    if (!change)
       message = "Client Found: Nothing to Change";
     else
     {
       message = "Client Found: Changed Status";
 
-      clients[index].suspended = suspend; // Change Status of Client
+      clients[index].suspended = !clients[index].suspended; // Change Status of Client
 
       ifstream infile(clientsFilename);
       ofstream outfile(clientsFilename);
@@ -488,7 +496,7 @@ bool clientActionConfirm(clientActions action)
   switch (action)
   {
   case clientDeposit:
-    message = "Do you Want this Deposit?";
+    message = "Do you Want to Deposit this Amount?";
     break;
   case clientCashout:
     message = "Do you Want to Cashout this Amount?";

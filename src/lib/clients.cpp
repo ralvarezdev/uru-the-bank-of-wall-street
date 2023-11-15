@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include "clients.h"
 #include "input.h"
 #include "namespaces.h"
@@ -76,6 +77,8 @@ int getClients(Client clients[])
       nline++;
       nClientsRead = nline;
       count = 0;
+
+      clientsMergeSort(clients, nClientsRead, sortByIdA); // Sort Clients by Id
     }
     infile.close();
   }
@@ -90,10 +93,11 @@ int getClients(Client clients[])
 // Function that Returns Clients Indexes that Matched with the Parameters
 int filterClients(Client clients[], int filteredIndexes[], int nClientsRead, string **params)
 {
-  bool matches;
   clientStatus clientStatus;
+  bool matches;
   double account;
-  int tempClientsRead, i, id, index;
+  int tempClientsRead, i, id, index, counter;
+  string nameLower;
 
   Client *tempClients = new Client[nClientsRead]; // Allocate Memory
   int *tempIndexes = new int[nClientsRead];
@@ -105,6 +109,7 @@ int filterClients(Client clients[], int filteredIndexes[], int nClientsRead, str
   for (int field = 0; field < fieldEnd - 1; field++)
     for (int param = 0; param < maxParamPerSubCmd && params[field][param] != "null"; param++)
     {
+      counter = 0;
       fill(tempIndexes, tempIndexes + tempClientsRead, -1); // Fill Array with Wrong Values
 
       for (i = 0; i < tempClientsRead && filteredIndexes[i] != -1; i++)
@@ -114,18 +119,20 @@ int filterClients(Client clients[], int filteredIndexes[], int nClientsRead, str
       {
       case fieldId:
         id = stoi(params[field][param]);
-        clientStatus = checkClient(tempClients, tempClientsRead, id, fieldId, &index); // Binary Search to Get the Index
+        clientStatus = checkClient(tempClients, tempClientsRead, id, fieldId, &index); // Binary Search
         if (clientStatus != clientNotFound)
           tempIndexes[0] = index; // Store Index
         break;
-        /*
+
       case fieldName:
-        id = stoi(params[field][param]);
-        clientStatus = checkClient(tempClients, tempClientsRead, id, fieldId, &index); // Binary Search to Get the Index
-        if (clientStatus != clientNotFound)
-          tempIndexes[0] = index; // Store Index
+        nameLower = getLower(params[field][param]); // Get Client Name To Search for in Lowercase
+
+        clientsMergeSort(tempClients, tempClientsRead, sortByIdA); // Sort Clients by Id
+        for (i = 0; i < tempClientsRead; i++)
+          if (getLower(tempClients[i].name).find(nameLower) != string::npos) // Checks if the Client Name in Lowercase Contains the Parameter that is being Searched by Linear Search
+            tempIndexes[counter++] = i;
         break;
-        */
+
       case fieldAccountNumber:
         account = stod(params[field][param]);
         clientStatus = checkClient(tempClients, tempClientsRead, account, fieldAccountNumber, &index); // Binary Search
@@ -197,7 +204,7 @@ int addClientToFile(Client clients[], int nClientsRead)
       }
       catch (...)
       {
-        wrongClientData(invalidClientId);
+        wrongClientData(invalidClientAccountNumber);
       }
 
     check = booleanQuestion("Do you Want to Create a Debit (Y) or a Current (N) Account?");

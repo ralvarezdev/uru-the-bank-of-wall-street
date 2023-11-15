@@ -45,10 +45,8 @@ clientStatus checkClient(Client clients[], int nClientsRead, T unique, fieldCmds
       if (field == fieldId)
         value = clients[mid].id;
       else if (field == fieldAccountNumber)
-      {
-        cout << mid << ' ' << clients[mid].account << '\n';
         value = clients[mid].account;
-      }
+
       found = (value == unique);
     }
     catch (...)
@@ -66,8 +64,10 @@ clientStatus checkClient(Client clients[], int nClientsRead, T unique, fieldCmds
       else if (field == fieldAccountNumber)
         checkClient(clients, nClientsRead, clients[mid].id, fieldId, index); // Get Index of Client with that Account Number when the Array is Sorted by Id
 
-      cout << mid << '\n';
-      return clientFound;
+      if (clients[*index].suspended)
+        return clientSuspended;
+      else
+        return clientFound;
     }
     else if (unique > value)
       start = mid + 1;

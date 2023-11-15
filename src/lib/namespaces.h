@@ -184,7 +184,7 @@ namespace commands
     wrongBooleanAnswer
   };
 
-  const int maxParamPerSubCmd = 6; // Max Number of Parameters per Subcommand
+  const int maxParamPerSubCmd = 1; // Max Number of Parameters per Subcommand
 
   // - View Clients Command Parameters Structure
   struct ViewClientsCmd
