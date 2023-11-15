@@ -119,6 +119,9 @@ void checkClientStatus(clientStatus clientStatus)
   case clientNotFound:
     message = "Error 404: Client Not Found. Run \"Add Client Command\"";
     break;
+  case clientSuspended:
+    message = "Error: Your Account is Suspended. Contact Us to Get Access to All of your Account Features";
+    break;
   }
   pressEnterToCont(message, (clientStatus != clientFound) ? true : false);
 }

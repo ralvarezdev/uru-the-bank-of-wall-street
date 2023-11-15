@@ -56,6 +56,7 @@ namespace clients
   {
     clientFound,
     clientNotFound,
+    clientSuspended,
     errorStatus
   };
 
@@ -73,7 +74,7 @@ namespace clients
   {
     clientDeposit,
     clientCashout,
-    clientTransaction,
+    clientSend,
     clientEnd // To get the number of Client Actions. SHOULD BE AT THE END
   };
 
@@ -97,14 +98,14 @@ namespace clients
     bool suspended; // If the Account was Suspended
   };
 
-  const int precision = 2; // Precision for Floats and Doubles
-  const int nClients = 10000;                              // Max Number of Clients
-  const string clientsFilename = "clients.csv";            // Clients Filename
-  const string transactionsFilenames = "transactions.csv"; // Transactions Filename (STORES TRANSACTIONS BETWEEN CLIENTS)
-  const string balancesFilename = "balances.csv";          // Clients Movements Filename (STORES DEPOSITS, CASHOUTS AND TRANSACTIONS)
-  const int maxAccountDigits = 10;                         // Maximum Number of Digits for Account Number
-  const float minDeposit = 0;                              // Minimum Amount to Deposit
-  const float maxDeposit = 100000;                         // Maximum Amount to Deposit
+  const int precision = 2;                                // Precision for Floats and Doubles
+  const int nClients = 10000;                             // Max Number of Clients
+  const string clientsFilename = "clients.csv";           // Clients Filename
+  const string transactionsFilename = "transactions.csv"; // Transactions Filename (STORES TRANSACTIONS BETWEEN CLIENTS)
+  const string balancesFilename = "balances.csv";         // Clients Movements Filename (STORES DEPOSITS, CASHOUTS AND TRANSACTIONS)
+  const int maxAccountDigits = 10;                        // Maximum Number of Digits for Account Number
+  const float minDeposit = 0;                             // Minimum Amount to Deposit
+  const float maxDeposit = 100000;                        // Maximum Amount to Deposit
 }
 
 namespace commands
@@ -115,7 +116,7 @@ namespace commands
     cmdFilterClients,
     cmdDepositMoney,
     cmdCashoutMoney,
-    cmdTransferMoney,
+    cmdSendMoney,
     cmdFieldParameters,
     cmdSortByParameters,
     cmdHowToUseViewClients,

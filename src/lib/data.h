@@ -40,8 +40,8 @@ void sortByParameters();
 void howToUseViewClients();
 void howToUseFilterClients();
 void depositMoney(Client clients[], int nClientsRead);
-void cashoutMoney();
-void transferMoney();
+void cashoutMoney(Client clients[], int nClientsRead);
+void sendMoney(Client clients[], int nClientsRead);
 void printClientInfo(Client client);
 void changeStatus(Client clients[], int nClientsRead);
 

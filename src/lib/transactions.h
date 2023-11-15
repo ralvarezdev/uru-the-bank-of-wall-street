@@ -10,5 +10,6 @@ extern string *actionsPtr;
 
 // --- Functions
 void storeBalance(clientActions action, int clientId, double account, float amount);
+void storeTransactions(int clientIdFrom, double accountFrom, float amount, int clientIdTo);
 
 #endif

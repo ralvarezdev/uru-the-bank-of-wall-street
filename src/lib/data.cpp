@@ -18,14 +18,14 @@ using namespace terminal;
 // --- Valid Commands
 
 // The Index of each Character is Related to the Enum Value of the Same Command or Subcommand
-int cmdsChar[cmdEnd] = {'v', 'f', 'd', 'c', 't', 'F', 'S', 'x', 'y', 'h', 'e', 'a', 's'};
+int cmdsChar[cmdEnd] = {'v', 'f', 'd', 'c', 's', 'F', 'S', 'x', 'y', 'h', 'e', 'a', 'C'};
 int subCmdsChar[subCmdEnd] = {'f', 's'};
 int fieldCmdsChar[fieldEnd] = {'i', 'n', 't', 's', 'a', '.'};
 int sortByCmdsChar[sortByEnd] = {'i', 'I', 'n', 'N', 't', 'T', 's', 'S', 'a', 'A'};
 
 // Command Title
 string accountStr[accountEnd] = {"current", "debit"};
-string actionsStr[clientEnd] = {"deposit", "cashout", "transaction"};
+string actionsStr[clientEnd] = {"deposit", "cashout", "send"};
 string fieldCmdsStr[fieldEnd] = {"Id", "Client Name", "Account Type", "Account Status", "Account Number"};
 
 // --- Extern Variables and Constants Assignment
@@ -48,8 +48,8 @@ void printExamples(string cmds[], string explanations[], int n);
 void howToUseViewClients();
 void howToUseFilterClients();
 void depositMoney(Client clients[], int nClientsRead);
-void cashoutMoney();
-void transferMoney();
+void cashoutMoney(Client clients[], int nClientsRead);
+void sendMoney(Client clients[], int nClientsRead);
 void changeStatus(Client clients[], int nClientsRead);
 bool clientActionConfirm(clientActions action);
 void printArray(string *params, int m, string paramTitle);
@@ -228,6 +228,7 @@ void howToUseFilterClients()
 // Function for Clients to Deposit Money in their Accounts
 void depositMoney(Client clients[], int nClientsRead)
 {
+  bool suspended;
   int id, index;
   float amount;
   string message;
@@ -247,71 +248,159 @@ void depositMoney(Client clients[], int nClientsRead)
       checkClientStatus(clientStatus);
       continue;
     }
+    else if (clients[index].suspended)
+    { // The Client Cannot Deposit Any Money while his Account is Suspended
+      checkClientStatus(clientSuspended);
+      suspended = true;
+      break;
+    }
 
     cout << '\n';
     printClientInfo(clients[index]); // Print Client Info
     cout << '\n';
-    if (booleanQuestion("Is This Your Client Account?"))
+    if (booleanQuestion("Is this your Client Account?"))
       break;
   }
 
-  amount = getFloat("Enter the Amount to Deposit", minDeposit, maxDeposit);
-  if (clientActionConfirm(clientDeposit)) // Asks the Client for Confirmation
-  {
-    message = "You Have Successfully Deposit $";
-    message.append(toStringWithPrecision(amount, precision));
+  if (!suspended)
+  { // Check if the Client isn't Suspended
+    amount = getFloat("Enter the Amount to Deposit", minDeposit, maxDeposit);
+    if (clientActionConfirm(clientDeposit)) // Asks the Client for Confirmation
+    {
+      message = "You Have Successfully Deposited $";
+      message.append(toStringWithPrecision(amount, precision));
 
-    storeBalance(clientDeposit, id, clients[index].account, amount);
-    pressEnterToCont(message, false);
+      storeBalance(clientDeposit, id, clients[index].account, amount);
+      pressEnterToCont(message, false);
+    }
   }
 }
 
 // Function for Clients to Cashout Money from their Accounts
-void cashoutMoney()
+void cashoutMoney(Client clients[], int nClientsRead)
 {
+  bool suspended;
+  int id, index;
+  float amount;
+  string message;
+  clientStatus clientStatus;
+
   cout << clear; // Clear Terminal
-  printTitle("Cashout Money", applyBgColor, applyFgColor, false);
+  printTitle("Cash Out Money", applyBgColor, applyFgColor, false);
   cout << '\n';
+
+  while (true)
+  {
+    id = getClientId("Client ID");
+    clientStatus = checkClient(clients, nClientsRead, id, fieldId, &index); // Check if the Clients Exists
+
+    if (clientStatus != clientFound)
+    {
+      checkClientStatus(clientStatus);
+      continue;
+    }
+    else if (clients[index].suspended)
+    { // The Client Cannot Cash Out Any Money while his Account is Suspended
+      checkClientStatus(clientSuspended);
+      suspended = true;
+      break;
+    }
+
+    cout << '\n';
+    printClientInfo(clients[index]); // Print Client Info
+    cout << '\n';
+    if (booleanQuestion("Is this your Client Account?"))
+      break;
+  }
+
+  if (!suspended)
+  { // Check if the Client isn't Suspended
+    amount = getFloat("Enter the Amount to Cash Out", minDeposit, maxDeposit);
+    if (clientActionConfirm(clientCashout)) // Asks the Client for Confirmation
+    {
+      message = "You Have Successfully Cashed Out $";
+      message.append(toStringWithPrecision(amount, precision));
+
+      storeBalance(clientCashout, id, clients[index].account, amount);
+      pressEnterToCont(message, false);
+    }
+  }
 }
 
 // Function for Clients to Transfer Money from their Balance to other Client Accounts
-void transferMoney()
+void sendMoney(Client clients[], int nClientsRead)
 {
+  bool suspended;
+  int idFrom, idTo, indexFrom, indexTo;
+  float amount;
+  string message;
+  clientStatus clientStatus;
+
   cout << clear; // Clear Terminal
-  printTitle("Transfer Money", applyBgColor, applyFgColor, false);
+  printTitle("Send Money", applyBgColor, applyFgColor, false);
   cout << '\n';
 
-  /*
-    cout << "\nEsta seguro de transferir a " << dato << "?" << endl;
-    cout << "\n1. Si" << endl
-         << "2. No" << endl;
-    cin >> opcion;
-
-    if (opcion == 1)
-    {
-      cout << "Ingrese la cantidad a transferir: ";
-      double cantidadTransferir;
-      cin >> cantidadTransferir;
-      if (cantidadTransferir > 0)
-      {
-        cout << "Transferencia realizada de $" << cantidadTransferir << " a " << dato << endl;
-        guardarTransaccion("Transferencia", cantidadTransferir, dato);
-      }
-      else
-      {
-        cout << "Transferencia inválida" << endl;
-      }
-    }
-    else if (opcion == 2)
-    {
-      cout << "Transferencia cancelada" << endl;
-    }
-  }
-  else
+  while (true)
   {
-    cout << "\nNo puedes transferir a ti mismo" << endl;
+    idFrom = getClientId("Client ID");
+    clientStatus = checkClient(clients, nClientsRead, idFrom, fieldId, &indexFrom); // Check if the Clients Exists
+
+    if (clientStatus != clientFound)
+    {
+      checkClientStatus(clientStatus);
+      continue;
+    }
+    else if (clients[indexFrom].suspended)
+    { // The Client Cannot Send Any Money while his Account is Suspended
+      checkClientStatus(clientSuspended);
+      suspended = true;
+      break;
+    }
+
+    cout << '\n';
+    printClientInfo(clients[indexFrom]); // Print Client Info
+    cout << '\n';
+    if (booleanQuestion("Is this your Client Account?"))
+      break;
   }
-  */
+
+  if (!suspended)
+  { // Check if the Client isn't Suspended
+    while (true)
+    {
+      idTo = getClientId("Send to Client Id");
+      clientStatus = checkClient(clients, nClientsRead, idTo, fieldId, &indexTo); // Check if the Clients Exists
+
+      if (idFrom == idTo)
+      { // Client Cannot Send to Himself
+        pressEnterToCont("Error: You Cannot Send to Yourself", false);
+        continue;
+      }
+
+      if (clientStatus != clientFound)
+      {
+        checkClientStatus(clientStatus);
+        continue;
+      }
+
+      cout << '\n';
+      printClientInfo(clients[indexTo]); // Print Client Info
+      cout << '\n';
+      if (booleanQuestion("Is this the Account you Want to Send the Money to?"))
+        break;
+    }
+
+    amount = getFloat("Enter the Amount to Send", minDeposit, maxDeposit);
+    if (clientActionConfirm(clientSend)) // Asks the Client for Confirmation
+    {
+      message = "You Have Successfully Sent $";
+      message.append(toStringWithPrecision(amount, precision));
+
+      storeTransactions(idFrom, clients[indexFrom].account, amount, idTo);
+      storeBalance(clientSend, idFrom, clients[indexFrom].account, amount);
+      pressEnterToCont(message, false);
+    }
+  }
 }
 
 // Function to Change the Status of a Client
@@ -383,8 +472,8 @@ bool clientActionConfirm(clientActions action)
   case clientCashout:
     message = "Do you Want to Cashout this Amount?";
     break;
-  case clientTransaction:
-    message = "Do you Want to Do this Transactions?";
+  case clientSend:
+    message = "Do you Want to Send this Amount?";
     break;
   }
   return booleanQuestion(message);

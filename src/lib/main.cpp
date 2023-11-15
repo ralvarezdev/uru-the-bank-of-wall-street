@@ -345,10 +345,10 @@ int main(int argc, char **argv)
       depositMoney(clients, nClientsRead);
       break;
     case cmdCashoutMoney:
-      cashoutMoney();
+      cashoutMoney(clients, nClientsRead);
       break;
-    case cmdTransferMoney:
-      transferMoney();
+    case cmdSendMoney:
+      sendMoney(clients, nClientsRead);
       break;
     case cmdExit:
       exit = true;
@@ -377,7 +377,7 @@ void helpMessage()
        << "Client Commands:\n"
        << tab1 << addBrackets(cmdsPtr[cmdDepositMoney]) << " Deposit Money\n"
        << tab1 << addBrackets(cmdsPtr[cmdCashoutMoney]) << " Cashout Money\n"
-       << tab1 << addBrackets(cmdsPtr[cmdTransferMoney]) << " Transfer Money\n"
+       << tab1 << addBrackets(cmdsPtr[cmdSendMoney]) << " Send Money\n"
        << "Command Parameters:\n"
        << tab1 << addBrackets(cmdsPtr[cmdFieldParameters]) << " Client Field Parameters\n"
        << tab1 << addBrackets(cmdsPtr[cmdSortByParameters]) << " Sort By Parameters\n"
