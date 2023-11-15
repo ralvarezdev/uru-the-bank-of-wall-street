@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include "transactions.h"
 #include "clients.h"
 #include "ansiEsc.h"
 #include "data.h"
@@ -24,6 +25,7 @@ int sortByCmdsChar[sortByEnd] = {'i', 'I', 'n', 'N', 't', 'T', 's', 'S', 'a', 'A
 
 // Command Title
 string accountStr[accountEnd] = {"current", "debit"};
+string actionsStr[clientEnd] = {"deposit", "cashout", "transaction"};
 string fieldCmdsStr[fieldEnd] = {"Id", "Client Name", "Account Type", "Account Status", "Account Number"};
 
 // --- Extern Variables and Constants Assignment
@@ -31,6 +33,7 @@ int *cmdsPtr = cmdsChar;
 int *subCmdsPtr = subCmdsChar;
 int *fieldCmdsCharPtr = fieldCmdsChar;
 string *accountPtr = accountStr;
+string *actionsPtr = actionsStr;
 string *fieldCmdsStrPtr = fieldCmdsStr;
 int *sortByCmdsPtr = sortByCmdsChar;
 
@@ -44,10 +47,11 @@ void sortByParameters();
 void printExamples(string cmds[], string explanations[], int n);
 void howToUseViewClients();
 void howToUseFilterClients();
-void depositMoney();
-void checkoutMoney();
+void depositMoney(Client clients[], int nClientsRead);
+void cashoutMoney();
 void transferMoney();
 void changeStatus(Client clients[], int nClientsRead);
+bool clientActionConfirm(clientActions action);
 void printArray(string *params, int m, string paramTitle);
 void print2DArray(string **params, int m, int n, string paramsTitle[]);
 void printClients(Client clients[], int m, bool *fields, int n);
@@ -221,52 +225,113 @@ void howToUseFilterClients()
   pressEnterToCont("Press ENTER to Continue", false);
 }
 
-// To Add
-
-void depositMoney()
+// Function for Clients to Deposit Money in their Accounts
+void depositMoney(Client clients[], int nClientsRead)
 {
-  cout << "d";
+  int id, index;
+  float amount;
+  string message;
+  clientStatus clientStatus;
+
+  cout << clear; // Clear Terminal
+  printTitle("Deposit Money", applyBgColor, applyFgColor, false);
+  cout << '\n';
+
+  while (true)
+  {
+    id = getClientId("Client ID");
+    clientStatus = checkClient(clients, nClientsRead, id, fieldId, &index); // Check if the Clients Exists
+
+    if (clientStatus != clientFound)
+    {
+      checkClientStatus(clientStatus);
+      continue;
+    }
+
+    cout << '\n';
+    printClientInfo(clients[index]); // Print Client Info
+    cout << '\n';
+    if (booleanQuestion("Is This Your Client Account?"))
+      break;
+  }
+
+  amount = getFloat("Enter the Amount to Deposit", minDeposit, maxDeposit);
+  if (clientActionConfirm(clientDeposit)) // Asks the Client for Confirmation
+  {
+    message = "You Have Successfully Deposit $";
+    message.append(toStringWithPrecision(amount, precision));
+
+    storeBalance(clientDeposit, id, clients[index].account, amount);
+    pressEnterToCont(message, false);
+  }
 }
 
-void checkoutMoney()
+// Function for Clients to Cashout Money from their Accounts
+void cashoutMoney()
 {
-  cout << "c";
+  cout << clear; // Clear Terminal
+  printTitle("Cashout Money", applyBgColor, applyFgColor, false);
+  cout << '\n';
 }
 
+// Function for Clients to Transfer Money from their Balance to other Client Accounts
 void transferMoney()
 {
-  cout << "t";
+  cout << clear; // Clear Terminal
+  printTitle("Transfer Money", applyBgColor, applyFgColor, false);
+  cout << '\n';
+
+  /*
+    cout << "\nEsta seguro de transferir a " << dato << "?" << endl;
+    cout << "\n1. Si" << endl
+         << "2. No" << endl;
+    cin >> opcion;
+
+    if (opcion == 1)
+    {
+      cout << "Ingrese la cantidad a transferir: ";
+      double cantidadTransferir;
+      cin >> cantidadTransferir;
+      if (cantidadTransferir > 0)
+      {
+        cout << "Transferencia realizada de $" << cantidadTransferir << " a " << dato << endl;
+        guardarTransaccion("Transferencia", cantidadTransferir, dato);
+      }
+      else
+      {
+        cout << "Transferencia inválida" << endl;
+      }
+    }
+    else if (opcion == 2)
+    {
+      cout << "Transferencia cancelada" << endl;
+    }
+  }
+  else
+  {
+    cout << "\nNo puedes transferir a ti mismo" << endl;
+  }
+  */
 }
 
 // Function to Change the Status of a Client
 void changeStatus(Client clients[], int nClientsRead)
 {
   string temp;
-  int id, index, clientStatus;
+  clientStatus clientStatus;
+  int id, index;
   string message;
 
   cout << clear;
   printTitle("Change Account Status", applyBgColor, applyFgColor, false); // Examples of the Usage of the Search Command
   cout << '\n';
 
-  while (true)
-    try // Get Client ID
-    {
-      cout << "Client ID to Change Status: ";
-      getline(cin, temp);
-      id = stoi(temp);
-      break;
-    }
-    catch (...)
-    {
-      wrongClientData(invalidClientId);
-    }
-
+  id = getClientId("Client ID to Change Status");
   clientStatus = checkClient(clients, nClientsRead, id, fieldId, &index); // Check if the Clients Exists
 
   if (clientStatus != clientFound)
-    message = "Error 404: Client Not Found. Run \"Add Client Command\"";
-  else if (clientStatus != invalidArgument)
+    checkClientStatus(clientStatus);
+  else if (clientStatus != errorStatus)
   {
     bool suspend = booleanQuestion("Do you want to Suspend a Client?"); // Ask wether to Suspend or Active Account
     cout << '\n';
@@ -287,21 +352,42 @@ void changeStatus(Client clients[], int nClientsRead)
 
       outfile << header << '\n'; // Write Header
 
-      string accountType, suspended;
-
+      string suspended;
       for (int i = 0; i < nClientsRead; i++) // Write to File
       {
-        accountType = (clients[i].type) ? "debit" : "current"; // Get Account Type
         suspended = (clients[i].suspended) ? "true" : "false"; // Get Account Status
 
         outfile << clients[i].id << sep << clients[i].name << sep
-                << setw(10) << setfill('0') << right << fixed << setprecision(0) << clients[i].account << left
-                << sep << accountType << sep << suspended << '\n';
+                << setw(maxAccountDigits) << setfill('0') << right << fixed << setprecision(0) << clients[i].account << left
+                << sep << accountPtr[clients[i].type] << sep << suspended << '\n';
       }
+
+      infile.close(); // Close files
+      outfile.close();
     }
     printClientInfo(clients[index]);
+    pressEnterToCont(message, false);
   }
-  pressEnterToCont(message, (clientStatus == clientFound) ? false : true);
+}
+
+// Function to Print Message Confirmation when a Client Tries to make any Financial Transaction
+bool clientActionConfirm(clientActions action)
+{
+  string message;
+
+  switch (action)
+  {
+  case clientDeposit:
+    message = "Do you Want this Deposit?";
+    break;
+  case clientCashout:
+    message = "Do you Want to Cashout this Amount?";
+    break;
+  case clientTransaction:
+    message = "Do you Want to Do this Transactions?";
+    break;
+  }
+  return booleanQuestion(message);
 }
 
 // --- Functions For Output Styling
@@ -374,9 +460,9 @@ void printClientInfo(Client client)
   else
     cout << client.name.substr(0, nCharContent - 4) << "... " << '\n';
 
-  cout << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountNumber] << client.account << '\n' // Print Client Account Number
-       << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountType] << accountType << '\n'      // Print Client Account Type
-       << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldSuspended] << suspended << '\n';         // Print Client Suspend Status
+  cout << setw(nCharField) << setfill(' ') << fixed << setprecision(0) << fieldCmdsStr[fieldAccountNumber] << client.account << '\n' // Print Client Account Number
+       << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountType] << accountType << '\n'                                  // Print Client Account Type
+       << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldSuspended] << suspended << '\n';                                     // Print Client Suspend Status
 }
 
 // Function to Print a 1D Array

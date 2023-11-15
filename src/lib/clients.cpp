@@ -20,10 +20,11 @@ void clientsMergeSort(Client *clients, int n, int sortByIndex);
 void clientsMerge(Client *clients, Client *sorted, int low, int mid, int high, int sortByIndex);
 string getLower(string word);
 
+// --- Functions
+
 // Function to Get an Array of Clients from clients.csv
 int getClients(Client clients[])
 {
-  string director[2];
   int count = 0, nline = 0, nClientsRead;
   string line, word;
 
@@ -94,7 +95,6 @@ int addClientToFile(Client clients[], int nClientsRead)
   {
     Client newClient = Client();
 
-    bool check;
     int iter, check, index;
     string temp, date, accountType;
 
@@ -108,9 +108,8 @@ int addClientToFile(Client clients[], int nClientsRead)
         getline(cin, temp);
         newClient.id = stoi(temp);
 
-        // The Id has already been Added to that File
         check = checkClient(clients, nClientsRead, newClient.id, fieldId, &index);
-        if (check != clientNotFound)
+        if (check != clientNotFound) // The Id has already been Added to that File
           throw(-1);
         else
           break;
@@ -130,9 +129,8 @@ int addClientToFile(Client clients[], int nClientsRead)
         getline(cin, temp);
         newClient.account = stoi(temp);
 
-        // The Account Number has already been Added to that File
         check = checkClient(clients, nClientsRead, newClient.account, fieldAccountNumber, &index);
-        if (check != clientNotFound)
+        if (check != clientNotFound) // The Account Number has already been Added to that File
           throw(-1);
         else
           break;
@@ -150,7 +148,7 @@ int addClientToFile(Client clients[], int nClientsRead)
 
     ofstream outfile(clientsFilename, ios::app); // Write to File
     outfile << newClient.id << sep << newClient.name << sep
-            << setw(10) << setfill('0') << right << fixed << setprecision(0) << newClient.account << left
+            << setw(maxAccountDigits) << setfill('0') << right << fixed << setprecision(0) << newClient.account << left
             << sep << accountType << sep << suspended << '\n';
 
     outfile.close();
@@ -185,6 +183,7 @@ void clientsMergeSort(Client *clients, int n, int sortByIndex)
       mid = (low + high) / 2;
       clientsMerge(clients, sorted, low, mid, high, sortByIndex);
     }
+
     if (n - i > pass / 2)
     {
       low = i;

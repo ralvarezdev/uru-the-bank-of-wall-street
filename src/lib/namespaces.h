@@ -22,9 +22,6 @@ namespace terminal
   const bool applyBgColor = true;     // Add Customed Background Color
   const bool applyFgColor = true;     // Add Customed Foreground Color
 
-  // - Size of the Title
-  const int nChar = 100; // If the string length is smaller, it'll be filled with whitespaces
-
   // --- Color Command Created Using the ralvarezdev's Minigrep Version. URL:https://github.com/ralvarezdev/minigrep
 
   // - Normal State
@@ -36,6 +33,7 @@ namespace terminal
   const string sgrFgCmdError = "\x1b[38;2;255;255;255m";
 
   // - Number of Characters
+  const int nChar = 100;                                      // - Max Number of Characters being Printed in Each Line
   const int paramPerLine = 3;                                 // Number of Parameters Printed by Line
   const int maxSpacing = 4;                                   // If the Maximum Number Characters is Reached this is the Spacing between Paratemeters
   const int nCharField = 15;                                  // Number of Characters for Field Title
@@ -50,14 +48,15 @@ namespace clients
   {
     invalidClientId,
     invalidClientAccountNumber,
-    invalidArgument, // Can't Search on Fields that doesn't have Unique Values
+    invalidArgument // Can't Search on Fields that doesn't have Unique Values
   };
 
   // - Client Status
   enum clientStatus
   {
     clientFound,
-    clientNotFound
+    clientNotFound,
+    errorStatus
   };
 
   // - Client Account Type
@@ -69,6 +68,25 @@ namespace clients
     accountEnd // To get the number of Account Types. SHOULD BE AT THE END
   };
 
+  // - Client Actions
+  enum clientActions
+  {
+    clientDeposit,
+    clientCashout,
+    clientTransaction,
+    clientEnd // To get the number of Client Actions. SHOULD BE AT THE END
+  };
+
+  /*
+    // - Transaction Status
+    enum transactionStatus
+    {
+      invalidAmount,
+      transactionSuccessful,
+      transactionEnd
+    }; // To get the number of Transaction Statuses. SHOULD BE AT THE END
+  */
+
   // - Client Structure
   struct Client
   {
@@ -79,8 +97,14 @@ namespace clients
     bool suspended; // If the Account was Suspended
   };
 
-  const int nClients = 10000;                   // Max Number of Clients
-  const string clientsFilename = "clients.csv"; // Clients Filename
+  const int precision = 2; // Precision for Floats and Doubles
+  const int nClients = 10000;                              // Max Number of Clients
+  const string clientsFilename = "clients.csv";            // Clients Filename
+  const string transactionsFilenames = "transactions.csv"; // Transactions Filename (STORES TRANSACTIONS BETWEEN CLIENTS)
+  const string balancesFilename = "balances.csv";          // Clients Movements Filename (STORES DEPOSITS, CASHOUTS AND TRANSACTIONS)
+  const int maxAccountDigits = 10;                         // Maximum Number of Digits for Account Number
+  const float minDeposit = 0;                              // Minimum Amount to Deposit
+  const float maxDeposit = 100000;                         // Maximum Amount to Deposit
 }
 
 namespace commands
@@ -90,7 +114,7 @@ namespace commands
     cmdViewClients,
     cmdFilterClients,
     cmdDepositMoney,
-    cmdCheckoutMoney,
+    cmdCashoutMoney,
     cmdTransferMoney,
     cmdFieldParameters,
     cmdSortByParameters,

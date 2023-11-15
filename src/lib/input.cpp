@@ -1,5 +1,7 @@
 #include <iostream>
+#include <iomanip>
 #include "ansiEsc.h"
+#include "data.h"
 #include "input.h"
 #include "namespaces.h"
 
@@ -11,9 +13,12 @@ using namespace commands;
 // --- Function Prototypes
 // void ignoreInput();
 bool booleanQuestion(string message);
-void wrongCommand(invalidClient cmdStatus);
+void wrongCommand(cmdStatus cmdStatus);
 void wrongClientData(invalidClient wrongData);
+void checkClientStatus(clientStatus clientStatus);
 void pressEnterToCont(string message, bool warning);
+int getClientId(string message);
+float getFloat(string message, float low, float high);
 
 // --- Functions
 
@@ -56,7 +61,7 @@ bool booleanQuestion(string message)
 // Function to Check if the Command Entered by the User is Correct
 void wrongCommand(cmdStatus cmdStatus)
 {
-  string message = "ERROR: ", err;
+  string message = "ERROR: ";
 
   switch (cmdStatus)
   {
@@ -104,6 +109,20 @@ void wrongClientData(invalidClient wrongData)
   pressEnterToCont(message, true);
 }
 
+// Function to Check if the Program Could Find a Client
+void checkClientStatus(clientStatus clientStatus)
+{
+  string message;
+
+  switch (clientStatus)
+  {
+  case clientNotFound:
+    message = "Error 404: Client Not Found. Run \"Add Client Command\"";
+    break;
+  }
+  pressEnterToCont(message, (clientStatus != clientFound) ? true : false);
+}
+
 // Function to Stop the Program Flow while the User doesn't press the ENTER key
 void pressEnterToCont(string message, bool warning)
 {
@@ -112,4 +131,40 @@ void pressEnterToCont(string message, bool warning)
   printTitle(message, applyBgColor, applyFgColor, warning);
   getline(cin, temp);
   // ignoreInput();
+}
+
+// Function to Ask for Client Id
+int getClientId(string message)
+{
+  string temp;
+
+  while (true)
+    try // Get Client ID
+    {
+      cout << message << ": ";
+      getline(cin, temp);
+      return stoi(temp);
+    }
+    catch (...)
+    {
+      wrongClientData(invalidClientId);
+    }
+}
+
+// Function to Ask for a Float Input
+float getFloat(string message, float low, float high)
+{
+  string temp;
+
+  while (true)
+    try // Get Floats
+    {
+      cout << message << " [" << setprecision(precision) << low << '-' << high << "]: ";
+      getline(cin, temp);
+      return stoi(temp);
+    }
+    catch (...)
+    {
+      pressEnterToCont("The Number is Out of that Range", true);
+    }
 }

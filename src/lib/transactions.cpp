@@ -1,29 +1,28 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
-#include <sstream>
 #include <string>
+#include "namespaces.h"
+#include "transactions.h"
 
 using namespace std;
+using namespace files;
+using namespace clients;
 
-enum class Opcion {
-    Depositar,
-    Retirar,
-    Transferir,
-    Salir
-};
+// Function to Store Updates of Clients Balance
+void storeBalance(clientActions action, int clientId, double account, float amount)
+{
+    ofstream outfile(balancesFilename, ios::app);
 
-string usuario;
-
-void guardarTransaccion(const string& tipo, double cantidad, const string& destinatario = "") {
-    ofstream archivo("transactions.csv", ios::app);
-    archivo << usuario << "," << tipo << "," << cantidad;
-    if (!destinatario.empty()) {
-        archivo << "," << destinatario;
-    }
-    archivo << "\n";
-    archivo.close();
+    // Client Id, Account Number, Action, Amount
+    outfile << clientId << sep // Write to File at Last Line
+            << setw(maxAccountDigits) << setfill('0') << fixed << setprecision(0) << account
+            << sep << actionsPtr[action]
+            << sep << amount << "\n";
+    outfile.close();
 }
 
+/*
 void depositar(double cantidad) {
     cout << "Deposito realizado de $" << cantidad << "." << endl;
     guardarTransaccion("Deposito", cantidad);
@@ -53,7 +52,7 @@ void buscarDatos(const string& datoBuscado) {
             }
         }
     }
-    
+
     archivo.close();
 }
 
@@ -96,7 +95,7 @@ void transferir(const string& datoBuscado) {
                     cout << "\nNo puedes transferir a ti mismo" << endl;
                 }
             }
-        }    
+        }
     }
 
     archivo.close();
@@ -144,4 +143,5 @@ int main() {
     }
     system("pause");
     return 0;
-}    
+}
+*/

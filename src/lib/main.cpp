@@ -280,10 +280,8 @@ int main(int argc, char **argv)
                 isField = true;
               break;
             }
-            else if (inputWord.length() == 0)
-            { // To Prevent Adding Whitespaces as Parameters-
+            else if (inputWord.length() == 0) // To Prevent Adding Whitespaces as Parameters-
               continue;
-            }
 
             filterClientsCmd.params[index.field][*paramCounter] = inputWord; // Add Parameter to Filter Clients
 
@@ -344,10 +342,10 @@ int main(int argc, char **argv)
       howToUseFilterClients();
       break;
     case cmdDepositMoney:
-      depositMoney();
+      depositMoney(clients, nClientsRead);
       break;
-    case cmdCheckoutMoney:
-      checkoutMoney();
+    case cmdCashoutMoney:
+      cashoutMoney();
       break;
     case cmdTransferMoney:
       transferMoney();
@@ -361,8 +359,6 @@ int main(int argc, char **argv)
     case cmdSuspendAccount:
       changeStatus(clients, nClientsRead);
       break;
-    default: // Help Message
-      timesExec++;
     }
   }
   delete[] clients; // Deallocate Memory
@@ -380,7 +376,7 @@ void helpMessage()
        << tab1 << addBrackets(cmdsPtr[cmdFilterClients]) << " Filter Clients\n"
        << "Client Commands:\n"
        << tab1 << addBrackets(cmdsPtr[cmdDepositMoney]) << " Deposit Money\n"
-       << tab1 << addBrackets(cmdsPtr[cmdCheckoutMoney]) << " Checkout Money\n"
+       << tab1 << addBrackets(cmdsPtr[cmdCashoutMoney]) << " Cashout Money\n"
        << tab1 << addBrackets(cmdsPtr[cmdTransferMoney]) << " Transfer Money\n"
        << "Command Parameters:\n"
        << tab1 << addBrackets(cmdsPtr[cmdFieldParameters]) << " Client Field Parameters\n"

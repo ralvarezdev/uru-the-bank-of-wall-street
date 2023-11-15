@@ -7,7 +7,7 @@ using namespace clients;
 
 // --- Extern Variables Declaration
 extern int *cmdsPtr, *subCmdsPtr, *fieldCmdsCharPtr, *sortByCmdsPtr;
-extern string *fieldCmdsStrPtr, *accountPtr;
+extern string *fieldCmdsStrPtr, *actionsPtr, *accountPtr;
 
 #ifndef DATA_H
 #define DATA_H
@@ -39,8 +39,8 @@ void fields(); // As a Parameter or as a Subcommand
 void sortByParameters();
 void howToUseViewClients();
 void howToUseFilterClients();
-void depositMoney();
-void checkoutMoney();
+void depositMoney(Client clients[], int nClientsRead);
+void cashoutMoney();
 void transferMoney();
 void printClientInfo(Client client);
 void changeStatus(Client clients[], int nClientsRead);

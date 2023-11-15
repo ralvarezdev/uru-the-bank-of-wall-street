@@ -21,10 +21,10 @@ void clientsMergeSort(Client *clients, int n, int sortByIndex);
 
 // Function to Check if Client Unique Fields have been Ocuppied
 template <typename T>
-int checkClient(Client clients[], int nClientsRead, T unique, fieldCmds field, int *index)
+clientStatus checkClient(Client clients[], int nClientsRead, T unique, fieldCmds field, int *index)
 {
   if (field != fieldId && field != fieldAccountNumber)
-    return invalidArgument;
+    return errorStatus;
   else if (field == fieldId)
     clientsMergeSort(clients, nClientsRead, sortByIdA); // Sort Clients by Id
   else if (field == fieldAccountNumber)
@@ -41,15 +41,11 @@ int checkClient(Client clients[], int nClientsRead, T unique, fieldCmds field, i
     try
     {
       if (field == fieldId)
-      {
         value = clients[mid].id;
-        found = (value == unique);
-      }
       else if (field == fieldAccountNumber)
-      {
         value = clients[mid].account;
-        found = (value == unique);
-      }
+
+      found = (value == unique);
     }
     catch (...)
     {
