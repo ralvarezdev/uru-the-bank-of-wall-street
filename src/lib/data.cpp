@@ -163,8 +163,8 @@ void validParameters(int nCharTitle)
 {
   string temp = "\"sentence to search\"";
 
-  cout << tab1 << setw(nCharTitle) << setfill(' ') << addBrackets<string>("word") << "Word to Search\n"
-       << tab1 << setw(nCharTitle) << setfill(' ') << addBrackets<string>(temp) << "Sentence to Search\n\n";
+  cout << tab1 << setw(nCharTitle) << setfill(' ') << addBrackets("word") << "Word to Search\n"
+       << tab1 << setw(nCharTitle) << setfill(' ') << addBrackets(temp) << "Sentence to Search\n\n";
 }
 
 // Function to Print Field as a Parameter and as a Command
@@ -179,11 +179,12 @@ void fields()
   cout << '\n';
 
   printTitle("Field as a Command (for Filter Clients)", applyBgColor, applyFgColor, false);
-  for (int i = 0; i < fieldEnd - 1 && fieldValidCmds[i]; i++)
-  {
-    temp = addBrackets(fieldCmdsChar[i]).append(" [param...]");
-    cout << tab1 << setw(nCharTitle) << setfill(' ') << temp << "Parameters for Client's " << fieldCmdsStr[i] << '\n';
-  }
+  for (int i = 0; i < fieldEnd - 1; i++)
+    if (fieldValidCmds[i])
+    {
+      temp = addBrackets(fieldCmdsChar[i]).append(" [param...]");
+      cout << tab1 << setw(nCharTitle) << setfill(' ') << temp << "Parameters for Client's " << fieldCmdsStr[i] << '\n';
+    }
   cout << '\n';
 
   printTitle("Valid Field Parameters (for Filter Clients)", applyBgColor, applyFgColor, false);
@@ -269,13 +270,12 @@ void depositMoney(Client clients[], int nClientsRead)
     clientStatus = checkClient(clients, nClientsRead, id, fieldId, &index); // Check if the Clients Exists
 
     if (clientStatus != clientFound)
-    {
       checkClientStatus(clientStatus);
+
+    if (clientStatus == clientNotFound)
       continue;
-    }
-    else if (clients[index].suspended)
+    else if (clientStatus == clientSuspended)
     { // The Client Cannot Deposit Any Money while his Account is Suspended
-      checkClientStatus(clientSuspended);
       suspended = true;
       break;
     }
@@ -320,13 +320,12 @@ void cashoutMoney(Client clients[], int nClientsRead)
     clientStatus = checkClient(clients, nClientsRead, id, fieldId, &index); // Check if the Clients Exists
 
     if (clientStatus != clientFound)
-    {
       checkClientStatus(clientStatus);
+
+    if (clientStatus == clientNotFound)
       continue;
-    }
-    else if (clients[index].suspended)
-    { // The Client Cannot Cash Out Any Money while his Account is Suspended
-      checkClientStatus(clientSuspended);
+    else if (clientStatus == clientSuspended)
+    { // The Client Cannot Deposit Any Money while his Account is Suspended
       suspended = true;
       break;
     }
@@ -371,13 +370,12 @@ void sendMoney(Client clients[], int nClientsRead)
     clientStatus = checkClient(clients, nClientsRead, idFrom, fieldId, &indexFrom); // Check if the Clients Exists
 
     if (clientStatus != clientFound)
-    {
       checkClientStatus(clientStatus);
+
+    if (clientStatus == clientNotFound)
       continue;
-    }
-    else if (clients[indexFrom].suspended)
-    { // The Client Cannot Send Any Money while his Account is Suspended
-      checkClientStatus(clientSuspended);
+    else if (clientStatus == clientSuspended)
+    { // The Client Cannot Deposit Any Money while his Account is Suspended
       suspended = true;
       break;
     }
@@ -621,7 +619,8 @@ void printArray(string *params, int n, string paramTitle)
 void print2DArray(string **params, int m, int n, string paramsTitle[])
 {
   for (int i = 0; i < m; i++)
-    printArray(params[i], n, paramsTitle[i]);
+    if (params[i][0] != "null")
+      printArray(params[i], n, paramsTitle[i]);
 }
 
 // Function to Print Clients
