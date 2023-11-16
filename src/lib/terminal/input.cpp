@@ -1,9 +1,8 @@
 #include <iomanip>
 #include <iostream>
 #include "ansiEsc.h"
-#include "data.h"
 #include "input.h"
-#include "namespaces.h"
+#include "..\namespaces.h"
 
 using namespace std;
 using namespace clients;
@@ -17,7 +16,6 @@ void wrongCommand(cmdStatus cmdStatus);
 void wrongClientData(invalidClient wrongData);
 void checkClientStatus(clientStatus clientStatus);
 void pressEnterToCont(string message, bool warning);
-int getClientId(string message);
 float getFloat(string message, float low, float high);
 
 // --- Functions
@@ -105,6 +103,9 @@ void wrongClientData(invalidClient wrongData)
   case invalidClientAccountNumber:
     message.append("Account Number");
     break;
+  case clientExists:
+    message = "Error: Client Exists";
+    break;
   }
   pressEnterToCont(message, true);
 }
@@ -134,24 +135,6 @@ void pressEnterToCont(string message, bool warning)
   printTitle(message, applyBgColor, applyFgColor, warning);
   getline(cin, temp);
   // ignoreInput();
-}
-
-// Function to Ask for Client Id
-int getClientId(string message)
-{
-  string temp;
-
-  while (true)
-    try // Get Client ID
-    {
-      cout << message << ": ";
-      getline(cin, temp);
-      return stoi(temp);
-    }
-    catch (...)
-    {
-      wrongClientData(invalidClientId);
-    }
 }
 
 // Function to Ask for a Float Input

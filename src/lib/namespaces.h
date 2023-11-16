@@ -48,6 +48,7 @@ namespace clients
   {
     invalidClientId,
     invalidClientAccountNumber,
+    clientExists,
     invalidArgument // Can't Search on Fields that doesn't have Unique Values
   };
 
@@ -184,7 +185,7 @@ namespace commands
     wrongBooleanAnswer
   };
 
-  const int maxParamPerSubCmd = 1; // Max Number of Parameters per Subcommand
+  const int maxParamPerSubCmd = 3; // Max Number of Parameters per Subcommand
 
   // - View Clients Command Parameters Structure
   struct ViewClientsCmd

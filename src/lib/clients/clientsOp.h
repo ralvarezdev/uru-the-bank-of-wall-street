@@ -1,22 +1,20 @@
-#include "input.h"
-#include "namespaces.h"
+#include "..\namespaces.h"
+#include "..\terminal\input.h"
 
 using namespace std;
 using namespace commands;
 using namespace clients;
-
-// --- Extern Variables Declaration
-extern string *accountPtr;
 
 #ifndef CLIENTS_H
 #define CLIENTS_H
 
 // --- Functions
 int getClients(Client clients[]);
-int filterClients(Client clients[], int filteredIndexes[], int nClientsRead, string **params);
-int addClientToFile(Client clients[], int nClientsRead);
+void filterClients(Client clients[], int nClientsRead, string **params, bool fields[], int sortBy[]);
+void addClientToFile(Client clients[], int *nClientsRead);
 void sortClients(Client clients[], int m, int sortBy[], int n);
 void clientsMergeSort(Client clients[], int n, int sortByIndex);
+int getClientId(string message);
 
 // --- Templates
 

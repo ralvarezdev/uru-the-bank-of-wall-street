@@ -3,11 +3,11 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "ansiEsc.h"
-#include "clients.h"
-#include "data.h"
-#include "input.h"
-#include "namespaces.h"
+#include ".\lib\clients\clientsOp.h"
+#include ".\lib\data\dataOp.h"
+#include ".\lib\terminal\ansiEsc.h"
+#include ".\lib\terminal\input.h"
+#include ".\lib\namespaces.h"
 
 using namespace std;
 using namespace clients;
@@ -20,8 +20,10 @@ using namespace terminal;
 That's the reason why the program is written like this
 */
 
-// --- Extern Variables and Constants Declaration
+// --- Extern Variables Declaration (DECLARED AT THE END OF THIS FILE)
+extern bool *fieldValidCmdsPtr;
 extern int *cmdsPtr, *subCmdsPtr, *fieldCmdsCharPtr, *sortByCmdsPtr;
+extern string *fieldCmdsStrPtr, *actionsPtr, *accountPtr;
 
 // --- Global Variables
 int nClientsRead = 0; // Number of Clients that had been Read and Copied from clients.csv
@@ -239,7 +241,7 @@ int main(int argc, char **argv)
           cmd.field = (isViewClientsCmd) ? inputWord[0] : inputWord[2];
           index.field = isCharOnArray(cmd.field, fieldCmdsCharPtr, fieldEnd); // Check if the Command is in the Field Parameters Array
 
-          if (index.field == -1 || (!isViewClientsCmd && index.field == fieldAll))
+          if (index.field == -1 || (!isViewClientsCmd && (index.field == fieldAll || !fieldValidCmdsPtr[index.field])))
           { // Wrong Field Parameter or Field Command
             isCmd = (isViewClientsCmd) ? wrongFieldParam : wrongField;
             break;
@@ -409,9 +411,46 @@ void initPtrArray(string **ptrArray, string array[][maxParamPerSubCmd], int arra
 // Function to Change Current Working Directory to 'src/data'
 void changeCwdToData(string path)
 {
-  filesystem::path mainPath = path.substr(0, path.length() - 13); // Path to Main Folder
-  filesystem::path dataDir = "src/data";
-  filesystem::path dataPath = mainPath / dataDir; // Concatenate mainPath with Data Dir
+  try
+  {
+    filesystem::path mainPath = path;                                // Path to main.exe
+    filesystem::path binPath = mainPath.parent_path().parent_path(); // Path to Main Folder
 
-  filesystem::current_path(dataPath); // Change cwd to '.../src/data'
+    filesystem::path dataDir = "src/data";
+    filesystem::path dataPath = binPath / dataDir; // Concatenate binPath with DataDir to get the FUll Path to the .csv Files
+
+    filesystem::current_path(dataPath); // Change cwd to '.../src/data'
+  }
+  catch (...)
+  {
+    pressEnterToCont("Error: Executable File is not Inside 'bin' Folder", true);
+  }
 }
+
+// --- Extern Variables and Constants Assignment
+
+// The Index of each Character is Related to the Enum Value of the Same Command or Subcommand
+int cmdsChar[commands::cmdEnd] = {'v', 'f', 'd', 'c', 's', 'F', 'S', 'x', 'y', 'h', 'e', 'a', 'C'};
+int subCmdsChar[commands::subCmdEnd] = {'f', 's'};
+int fieldCmdsChar[commands::fieldEnd] = {'i', 'n', 't', 's', 'a', '.'};
+int sortByCmdsChar[commands::sortByEnd] = {'i', 'I', 'n', 'N', 't', 'T', 's', 'S', 'a', 'A'};
+
+// Fields that can be Used for Filter Clients Command
+bool fieldValidCmds[commands::fieldEnd] = {true, true, false, false, true};
+
+// Command Title
+string accountStr[clients::accountEnd] = {"current", "debit"};
+string actionsStr[clients::clientEnd] = {"deposit", "cashout", "send"};
+string fieldCmdsStr[commands::fieldEnd] = {"Id", "Client Name", "Account Type", "Account Status", "Account Number"};
+
+// --- Extern Variables and Constants Assignment
+int *cmdsPtr = cmdsChar;
+int *subCmdsPtr = subCmdsChar;
+int *fieldCmdsCharPtr = fieldCmdsChar;
+
+bool *fieldValidCmdsPtr = fieldValidCmds;
+
+string *accountPtr = accountStr;
+string *actionsPtr = actionsStr;
+string *fieldCmdsStrPtr = fieldCmdsStr;
+int *sortByCmdsPtr = sortByCmdsChar;

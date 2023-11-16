@@ -3,9 +3,10 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "clients.h"
-#include "input.h"
-#include "namespaces.h"
+#include "clientsOp.h"
+#include "..\namespaces.h"
+#include "..\datatables\output.h"
+#include "..\terminal\input.h"
 
 using namespace std;
 using namespace commands;
@@ -13,14 +14,19 @@ using namespace files;
 using namespace terminal;
 using namespace clients;
 
+// --- Extern Variables Declaration
+extern bool *fieldValidCmdsPtr;
+extern string *accountPtr;
+
 // --- Functions Prototypes
 int getClients(Client clients[]);
-int filterClients(Client clients[], int filteredIndexes[], int nClientsRead, string **params);
-int addClientToFile(Client clients[], int nClientsRead);
+void filterClients(Client clients[], int nClientsRead, string **params, bool fields[], int sortBy[]);
+void addClientToFile(Client clients[], int *nClientsRead);
 void sortClients(Client clients[], int m, int sortBy[], int n);
 void clientsMergeSort(Client clients[], int n, int sortByIndex);
 void clientsMerge(Client clients[], Client sorted[], int low, int mid, int high, int sortByIndex);
 string getLower(string word);
+int getClientId(string message);
 
 // --- Functions
 
@@ -34,18 +40,17 @@ int getClients(Client clients[])
 
   if (!infile.is_open())
   { // Couldn't Access to infile
+    infile.close();
     pressEnterToCont("Error: File Not Found. Press ENTER to go Back to Main Menu", true);
     return -1;
   }
 
-  try
-  {
-    getline(infile, line); // Remove First Line, which is Used as a Title
-
-    while (getline(infile, line) && nClients >= nClientsRead)
+  while (getline(infile, line) && nClients >= nClientsRead)
+    try
     {
       stringstream file(line);
 
+      count = 0;
       while (getline(file, word, sep))
       {
         if (word.length() != 0)
@@ -76,87 +81,89 @@ int getClients(Client clients[])
       }
       nline++;
       nClientsRead = nline;
-      count = 0;
 
       clientsMergeSort(clients, nClientsRead, sortByIdA); // Sort Clients by Id
     }
-    infile.close();
-  }
-  catch (...)
-  {
-    pressEnterToCont("An Error Ocurred when Loading movies.csv. It has been Manipulated", true);
-    return -1;
-  }
+    catch (...)
+    {
+      // It will Ignore the Line that was Read from clients.csv
+    }
+
+  infile.close();
+
   return nClientsRead;
 }
 
 // Function that Returns Clients Indexes that Matched with the Parameters
-int filterClients(Client clients[], int filteredIndexes[], int nClientsRead, string **params)
+void filterClients(Client clients[], int nClientsRead, string **params, bool fields[], int sortBy[])
 {
   clientStatus clientStatus;
-  bool matches;
   double account;
-  int tempClientsRead, i, id, index, counter;
+  int i, id, index, counter;
   string nameLower;
 
-  Client *tempClients = new Client[nClientsRead]; // Allocate Memory
-  int *tempIndexes = new int[nClientsRead];
-
-  for (i = 0; i < nClientsRead; i++)
-    filteredIndexes[i] = i; // Save ALL Indexes
-  tempClientsRead = i;
+  bool *filteredIndexes = new bool[nClientsRead];               // Allocate Memory
+  fill(filteredIndexes, filteredIndexes + nClientsRead, false); // Fill Array with False Values
 
   for (int field = 0; field < fieldEnd - 1; field++)
+  {
+    if (fieldValidCmdsPtr[field] && params[field][0] == "null") // Check if the Function can Filter that Field, and if there are Parameters
+      continue;
+
     for (int param = 0; param < maxParamPerSubCmd && params[field][param] != "null"; param++)
     {
-      counter = 0;
-      fill(tempIndexes, tempIndexes + tempClientsRead, -1); // Fill Array with Wrong Values
-
-      for (i = 0; i < tempClientsRead && filteredIndexes[i] != -1; i++)
-        tempClients[i] = clients[filteredIndexes[i]]; // Create Temporary Filtered Clients
-
-      switch (field)
+      if (field != fieldName)
       {
-      case fieldId:
-        id = stoi(params[field][param]);
-        clientStatus = checkClient(tempClients, tempClientsRead, id, fieldId, &index); // Binary Search
-        if (clientStatus != clientNotFound)
-          tempIndexes[0] = index; // Store Index
-        break;
+        if (field == fieldId)
+        {
+          id = stoi(params[field][param]);
+          clientStatus = checkClient(clients, nClientsRead, id, fieldId, &index); // Binary Search
+        }
+        else if (field == fieldAccountNumber)
+        {
+          account = stod(params[field][param]);
+          clientStatus = checkClient(clients, nClientsRead, account, fieldAccountNumber, &index); // Binary Search
+        }
 
-      case fieldName:
+        if (clientStatus != clientNotFound && !filteredIndexes[index])
+        {                                // Checks if the Client has Already being Filtered
+          filteredIndexes[index] = true; // Store Index
+          counter++;
+        }
+      }
+      else
+      {
         nameLower = getLower(params[field][param]); // Get Client Name To Search for in Lowercase
 
-        clientsMergeSort(tempClients, tempClientsRead, sortByIdA); // Sort Clients by Id
-        for (i = 0; i < tempClientsRead; i++)
-          if (getLower(tempClients[i].name).find(nameLower) != string::npos) // Checks if the Client Name in Lowercase Contains the Parameter that is being Searched by Linear Search
-            tempIndexes[counter++] = i;
-        break;
-
-      case fieldAccountNumber:
-        account = stod(params[field][param]);
-        clientStatus = checkClient(tempClients, tempClientsRead, account, fieldAccountNumber, &index); // Binary Search
-        if (clientStatus != clientNotFound)
-          tempIndexes[0] = index; // Store Index
-        break;
+        clientsMergeSort(clients, nClientsRead, sortByIdA); // Sort Clients by Id
+        for (i = 0; i < nClientsRead; i++)
+          if (!filteredIndexes[i] && getLower(clients[i].name).find(nameLower) != string::npos)
+          {                            // Checks if the Client Name in Lowercase Contains the Parameter that is being Searched by Linear Search
+            filteredIndexes[i] = true; // Save Id
+            counter++;
+          }
       }
-
-      for (i = 0; i < tempClientsRead && tempIndexes[i] != -1; i++)
-        filteredIndexes[i] = tempIndexes[i]; // Save
-      tempClientsRead = i;
     }
-  int nClientsFiltered = tempClientsRead;
+  }
 
-  delete[] tempIndexes; // Deallocate Memory
-  delete[] tempClients;
+  Client *filteredClients = new Client[counter];
 
-  return nClientsFiltered;
+  counter = 0;
+  for (int i = 0; i < nClientsRead; i++)
+    if (filteredIndexes[i])
+      filteredClients[counter++] = clients[i]; // Save Client that has been Filtered to Array
+
+  sortClients(filteredClients, counter, sortBy, sortByEnd); // Sort Clients
+  printClients(filteredClients, counter, fields);           // Print Clients
+
+  delete[] filteredClients;
+  delete[] filteredIndexes;
 }
 
 // Function to Add Client
-int addClientToFile(Client clients[], int nClientsRead)
+void addClientToFile(Client clients[], int *nClientsRead)
 {
-  if (nClientsRead >= nClients)
+  if (*nClientsRead >= nClients)
     pressEnterToCont("The Maximum Number of Clients has been Reached", true);
   else
   {
@@ -175,54 +182,56 @@ int addClientToFile(Client clients[], int nClientsRead)
         getline(cin, temp);
         newClient.id = stoi(temp);
 
-        check = checkClient(clients, nClientsRead, newClient.id, fieldId, &index);
-        if (check != clientNotFound) // The Id has already been Added to that File
-          throw(-1);
-        else
-          break;
+        check = checkClient(clients, *nClientsRead, newClient.id, fieldId, &index);
+        break;
       }
       catch (...)
       {
         wrongClientData(invalidClientId);
       }
 
-    cout << "Name: "; // Get Client Name
-    getline(cin, newClient.name);
+    if (check != clientNotFound) // The Id has been Added to that File
+      wrongClientData(clientExists);
+    else
+    {
+      cout << "Name: "; // Get Client Name
+      getline(cin, newClient.name);
 
-    while (true) // Get Client Account Number
-      try
-      {
-        cout << "Account Number: ";
-        getline(cin, temp);
-        newClient.account = stoi(temp);
+      while (true) // Get Client Account Number
+        try
+        {
+          cout << "Account Number: ";
+          getline(cin, temp);
+          newClient.account = stoi(temp);
 
-        check = checkClient(clients, nClientsRead, newClient.account, fieldAccountNumber, &index);
-        if (check != clientNotFound) // The Account Number has already been Added to that File
-          throw(-1);
-        else
-          break;
-      }
-      catch (...)
-      {
-        wrongClientData(invalidClientAccountNumber);
-      }
+          check = checkClient(clients, *nClientsRead, newClient.account, fieldAccountNumber, &index);
+          if (check != clientNotFound) // The Account Number has already been Added to that File
+            throw(-1);
+          else
+            break;
+        }
+        catch (...)
+        {
+          wrongClientData(invalidClientAccountNumber);
+        }
 
-    check = booleanQuestion("Do you Want to Create a Debit (Y) or a Current (N) Account?");
-    newClient.type = (check) ? accountDebit : accountCurrent;
-    accountType = accountPtr[newClient.type]; // Get Account Type
+      check = booleanQuestion("Do you Want to Create a Debit (Y) or a Current (N) Account?");
+      newClient.type = (check) ? accountDebit : accountCurrent;
+      accountType = accountPtr[newClient.type]; // Get Account Type
 
-    clients[nClientsRead++] = newClient;
+      clients[*nClientsRead] = newClient;
+      *nClientsRead = *nClientsRead + 1;
 
-    ofstream outfile(clientsFilename, ios::app); // Write to File
-    outfile << newClient.id << sep << newClient.name << sep
-            << setw(maxAccountDigits) << setfill('0') << right << fixed << setprecision(0) << newClient.account << left
-            << sep << accountType << sep << suspended << '\n';
+      ofstream outfile(clientsFilename, ios::app); // Write to File
+      outfile << newClient.id << sep << newClient.name << sep
+              << setw(maxAccountDigits) << setfill('0') << right << fixed << setprecision(0) << newClient.account << left
+              << sep << accountType << sep << suspended << '\n';
 
-    outfile.close();
+      outfile.close();
 
-    pressEnterToCont("Client Added Successfully!", false);
+      pressEnterToCont("Client Added Successfully!", false);
+    }
   }
-  return nClientsRead;
 }
 
 // Function to Sort Clients (Uses Merge Sort)
@@ -338,4 +347,22 @@ string getLower(string word)
     wordToLower += tolower(word[i]); // Append Character in Lowercase
 
   return wordToLower;
+}
+
+// Function to Ask for Client Id
+int getClientId(string message)
+{
+  string temp;
+
+  while (true)
+    try // Get Client ID
+    {
+      cout << message << ": ";
+      getline(cin, temp);
+      return stoi(temp);
+    }
+    catch (...)
+    {
+      wrongClientData(invalidClientId);
+    }
 }

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 #include <typeinfo>
-#include "namespaces.h"
+#include "..\namespaces.h"
 
 using namespace std;
 using namespace clients;
@@ -54,7 +54,6 @@ void wrongCommand(cmdStatus cmdStatus);
 void wrongClientData(invalidClient wrongData);
 void checkClientStatus(clientStatus clientStatus);
 void pressEnterToCont(string message, bool warning);
-int getClientId(string message);
 float getFloat(string message, float low, float high);
 
 #endif

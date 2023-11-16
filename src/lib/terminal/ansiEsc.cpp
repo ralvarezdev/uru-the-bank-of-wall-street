@@ -1,7 +1,7 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
-#include "namespaces.h"
+#include "..\namespaces.h"
 
 using namespace std;
 using namespace terminal;

@@ -1,13 +1,9 @@
 #include <string>
 #include <typeinfo>
-#include "namespaces.h"
+#include "..\namespaces.h"
 
 using namespace std;
 using namespace clients;
-
-// --- Extern Variables Declaration
-extern int *cmdsPtr, *subCmdsPtr, *fieldCmdsCharPtr, *sortByCmdsPtr;
-extern string *fieldCmdsStrPtr, *actionsPtr, *accountPtr;
 
 #ifndef DATA_H
 #define DATA_H
