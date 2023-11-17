@@ -40,7 +40,6 @@ void printExamples(string cmds[], string explanations[], int n)
       cout << '\n'
            << tab1 << message << '\n';
     }
-    message = ""; // Clear String
 
     cout << tab1 << string(nCharTitle, '-') << '\n';
 
@@ -69,35 +68,6 @@ void printExamples(string cmds[], string explanations[], int n)
     }
     cout << '\n';
   }
-}
-
-// Function to Print Client Info
-void printClientInfo(Client client, bool censoreInfo)
-{
-  int nCharContent = nChar - nCharField;
-  int nAccountCensored = 7;                                       // Number of Characters from Account Number that are Censored
-  string accountType = accountPtr[client.type];                   // Get Client Type
-  string suspended = (client.suspended) ? "Suspended" : "Active"; // Get Client Status
-
-  printTitle("Client Info", applyBgColor, applyFgColor, false);
-
-  cout << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldId] << client.id << '\n'; // Print Client Id
-
-  cout << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldName]; // Print Client Name
-  if (client.name.length() < nCharContent)
-    cout << setw(nCharContent) << setfill(' ') << client.name << '\n';
-  else
-    cout << client.name.substr(0, nCharContent - 4) << "... " << '\n';
-
-  if (!censoreInfo)
-    cout << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldAccountNumber]
-         << setfill(' ') << fixed << setprecision(0) << client.account << '\n'                           // Print Client Account Number
-         << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldAccountType] << accountType << '\n' // Print Client Account Type
-         << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldSuspended] << suspended << '\n';    // Print Client Suspend Status
-  else
-    cout << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldAccountNumber]
-         << string(nAccountCensored, 'X') << getLastDigits(client.account, maxAccountDigits - nAccountCensored) << '\n' // Print Client Account Number
-         << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldAccountType] << accountType << '\n';               // Print Client Account Type
 }
 
 // Function to Print a 1D Array
@@ -133,6 +103,35 @@ void print2DArray(string **params, int m, int n, string paramsTitle[])
   for (int i = 0; i < m; i++)
     if (params[i][0] != "null")
       printArray(params[i], n, paramsTitle[i]);
+}
+
+// Function to Print Client Info
+void printClientInfo(Client client, bool censoreInfo)
+{
+  int nCharContent = nChar - nCharField;
+  int nAccountCensored = 7;                                       // Number of Characters from Account Number that are Censored
+  string accountType = accountPtr[client.type];                   // Get Client Type
+  string suspended = (client.suspended) ? "Suspended" : "Active"; // Get Client Status
+
+  printTitle("Client Info", applyBgColor, applyFgColor, false);
+
+  cout << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldId] << client.id << '\n'; // Print Client Id
+
+  cout << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldName]; // Print Client Name
+  if (client.name.length() < nCharContent)
+    cout << setw(nCharContent) << setfill(' ') << client.name << '\n';
+  else
+    cout << client.name.substr(0, nCharContent - 4) << "... " << '\n';
+
+  if (!censoreInfo)
+    cout << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldAccountNumber]
+         << setfill(' ') << fixed << setprecision(0) << client.account << '\n'                           // Print Client Account Number
+         << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldAccountType] << accountType << '\n' // Print Client Account Type
+         << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldSuspended] << suspended << '\n';    // Print Client Suspend Status
+  else
+    cout << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldAccountNumber]
+         << string(nAccountCensored, 'X') << getLastDigits(client.account, maxAccountDigits - nAccountCensored) << '\n' // Print Client Account Number
+         << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldAccountType] << accountType << '\n';               // Print Client Account Type
 }
 
 // Function to Print Clients

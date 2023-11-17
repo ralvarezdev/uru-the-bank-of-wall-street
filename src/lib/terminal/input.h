@@ -54,6 +54,7 @@ void wrongCommand(cmdStatus cmdStatus);
 void wrongClientData(invalidClient wrongData);
 void checkClientStatus(clientStatus clientStatus);
 void pressEnterToCont(string message, bool warning);
+string getLower(string word);
 float getFloat(string message, float low, float high);
 
 #endif

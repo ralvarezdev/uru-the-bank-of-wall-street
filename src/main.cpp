@@ -3,11 +3,11 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include ".\lib\clients\clientsOp.h"
-#include ".\lib\data\dataOp.h"
-#include ".\lib\terminal\ansiEsc.h"
-#include ".\lib\terminal\input.h"
-#include ".\lib\namespaces.h"
+#include "lib\clients\clientsOp.h"
+#include "lib\data\dataOp.h"
+#include "lib\terminal\ansiEsc.h"
+#include "lib\terminal\input.h"
+#include "lib\namespaces.h"
 
 using namespace std;
 using namespace clients;
@@ -20,7 +20,7 @@ using namespace terminal;
 That's the reason why the program is written like this
 */
 
-// --- Extern Variables Declaration (DECLARED AT THE END OF THIS FILE)
+// --- Extern Variables Declaration (ASSIGNMENT AT THE END OF THIS FILE)
 extern bool *fieldValidCmdsPtr;
 extern int *cmdsPtr, *subCmdsPtr, *fieldCmdsCharPtr, *sortByCmdsPtr;
 extern string *fieldCmdsStrPtr, *actionsPtr, *accountPtr;
@@ -313,7 +313,6 @@ int main(int argc, char **argv)
             filterClientsCmd.sortBy[i] = sortByOrder[i];
 
       if (isCmd == validCmd)
-      {
         switch (index.main)
         {
         case cmdViewClients:
@@ -323,7 +322,6 @@ int main(int argc, char **argv)
           filterClients(clients, nClientsRead, filterClientsCmd.paramsPtr, filterClientsCmd.sortBy);
           break;
         }
-      }
     }
 
     if (isCmd != validCmd)

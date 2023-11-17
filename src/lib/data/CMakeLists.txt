@@ -3,6 +3,7 @@ dataOp.cpp
 dataOp.h)
 
 target_link_libraries(data
+  PRIVATE datatables
   PRIVATE clients
   PRIVATE terminal)
 

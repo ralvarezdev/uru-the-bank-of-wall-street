@@ -16,6 +16,7 @@ void wrongCommand(cmdStatus cmdStatus);
 void wrongClientData(invalidClient wrongData);
 void checkClientStatus(clientStatus clientStatus);
 void pressEnterToCont(string message, bool warning);
+string getLower(string word);
 float getFloat(string message, float low, float high);
 
 // --- Functions
@@ -153,4 +154,15 @@ float getFloat(string message, float low, float high)
     {
       pressEnterToCont("The Number is Out of that Range", true);
     }
+}
+
+// Function to Get a Lowercase String
+string getLower(string word)
+{
+  string wordToLower;
+
+  for (int i = 0; i < word.length(); i++)
+    wordToLower += tolower(word[i]); // Append Character in Lowercase
+
+  return wordToLower;
 }

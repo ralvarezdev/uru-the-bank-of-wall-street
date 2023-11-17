@@ -25,7 +25,6 @@ void addClientToFile(Client clients[], int *nClientsRead);
 void sortClients(Client clients[], int m, int sortBy[], int n);
 void clientsMergeSort(Client clients[], int n, int sortByIndex);
 void clientsMerge(Client clients[], Client sorted[], int low, int mid, int high, int sortByIndex);
-string getLower(string word);
 int getClientId(string message);
 
 // --- Functions
@@ -336,17 +335,6 @@ void clientsMerge(Client clients[], Client sorted[], int low, int mid, int high,
 
   for (i = low; i <= high; i++)
     clients[i] = sorted[i];
-}
-
-// Function to Get a Lowercase String
-string getLower(string word)
-{
-  string wordToLower;
-
-  for (int i = 0; i < word.length(); i++)
-    wordToLower += tolower(word[i]); // Append Character in Lowercase
-
-  return wordToLower;
 }
 
 // Function to Ask for Client Id
