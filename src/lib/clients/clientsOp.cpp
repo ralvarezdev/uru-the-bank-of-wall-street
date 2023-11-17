@@ -47,6 +47,9 @@ int getClients(Client clients[])
   while (getline(infile, line) && nClients >= nClientsRead)
     try
     {
+      if (line.length() == 0)
+        continue;
+
       stringstream file(line);
 
       count = 0;
@@ -80,14 +83,13 @@ int getClients(Client clients[])
       }
       nline++;
       nClientsRead = nline;
-
-      clientsMergeSort(clients, nClientsRead, sortByIdA); // Sort Clients by Id
     }
     catch (...)
     {
       // It will Ignore the Line that was Read from clients.csv
     }
 
+  clientsMergeSort(clients, nClientsRead, sortByIdA); // Sort Clients by Id
   infile.close();
 
   return nClientsRead;
@@ -182,6 +184,8 @@ void addClientToFile(Client clients[], int *nClientsRead)
         newClient.id = stoi(temp);
 
         check = checkClient(clients, *nClientsRead, newClient.id, fieldId, &index);
+        if (newClient.id <= 0)
+          throw(-1); // ID Must be in the Range 0<ID<n
         break;
       }
       catch (...)

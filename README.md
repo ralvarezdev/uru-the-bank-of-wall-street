@@ -41,4 +41,4 @@ This is the Full List of Commands for Each Action in the Program
 # View Clients Command Examples
 ![Screenshot (730)](https://github.com/ralvarezdev/ProyectoLaboratorio_RR/assets/86166683/32539e54-f008-40a4-8c13-1345234dbdb1)
 # Filter Clients Command Examples
-![Screenshot (731)](https://github.com/ralvarezdev/ProyectoLaboratorio_RR/assets/86166683/f6f364eb-0084-4173-ba7e-84a11db85168)
+![Screenshot (752)](https://github.com/ralvarezdev/ProyectoLaboratorio_RR/assets/86166683/d71efa50-c463-4b19-9869-51ea30575f7e)

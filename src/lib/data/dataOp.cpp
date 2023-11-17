@@ -103,7 +103,7 @@ void viewClients(Client clients[], int nClientsRead, bool fields[], int sortBy[]
 // Function to Filter Clients
 void filterClients(Client clients[], int nClientsRead, string **params, int sortBy[])
 {
-  int l = fieldEnd - 1, m = maxAccountDigits, n = sortByEnd / 2, nClientsFiltered;
+  int l = fieldEnd - 1, m = maxParamPerSubCmd, n = sortByEnd / 2, nClientsFiltered;
   bool fields[l];
   string sortByStr[n];
 
