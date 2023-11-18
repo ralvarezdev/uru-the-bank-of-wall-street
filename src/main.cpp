@@ -140,14 +140,15 @@ int main(int argc, char **argv)
     {                                                         // Checks if the View Clients or Filter Clients Command is Typed Correctly
       bool isViewClientsCmd = (index.main == cmdViewClients); // Boolean to Check if the Current Command is View Clients
 
-      int sortByOrder[sortByEnd / 2], sortByCounter = 0; // Save Sorting Order
-      for (int i = 0; i < sortByEnd / 2; i++)
+      int nSortBy = sortByEnd / 2;
+      int sortByOrder[nSortBy], sortByCounter = 0; // Save Sorting Order
+      for (int i = 0; i < nSortBy; i++)
         sortByOrder[i] = -1;
 
       if (isViewClientsCmd)
       { // Initialize viewClients Sruct
         viewClientsCmd = ViewClientsCmd();
-        fill(viewClientsCmd.sortBy, viewClientsCmd.sortBy + sortByEnd, -1); // Initialize Sort By Array
+        fill(viewClientsCmd.sortBy, viewClientsCmd.sortBy + nSortBy, -1); // Initialize Sort By Array
       }
       else
       {
@@ -155,7 +156,7 @@ int main(int argc, char **argv)
         for (int i = 0; i < fieldEnd - 1; i++)
           fill(filterClientsCmd.params[i], filterClientsCmd.params[i] + maxParamPerSubCmd, "null");            // Initialize Params to Filter Array
         initPtrArray(filterClientsCmd.paramsPtr, filterClientsCmd.params, filterClientsCmd.counter, fieldEnd); // Copy Array to Pointer Array
-        fill(filterClientsCmd.sortBy, filterClientsCmd.sortBy + sortByEnd, -1);                                // Initialize Sort By Array
+        fill(filterClientsCmd.sortBy, filterClientsCmd.sortBy + nSortBy, -1);                                  // Initialize Sort By Array
       }
 
       while (true)
@@ -179,11 +180,10 @@ int main(int argc, char **argv)
           break;
         }
 
-        // Check if the Command is in the Array of subCommands
-        cmd.sub = inputWord[1];
+        cmd.sub = inputWord[1]; // Check if the Command is in the Array of subCommands
         index.sub = isCharOnArray(cmd.sub, subCmdsPtr, subCmdEnd);
 
-        if (index.sub == -1)
+        if (inputWord[0] != '-' && index.sub == -1)
         { // Wrong Subcommand
           isCmd = wrongSubCmd;
           break;
@@ -289,7 +289,17 @@ int main(int argc, char **argv)
             else if (inputWord.length() == 0) // To Prevent Adding Whitespaces as Parameters-
               continue;
 
-            filterClientsCmd.params[index.field][*paramCounter] = inputWord; // Add Parameter to Filter Clients
+            try
+            { // Add Parameter to Search Client
+              if (index.field == fieldId)
+                stoi(inputWord); // Check if the String can be Converted into an Integer
+
+              filterClientsCmd.params[index.field][*paramCounter] = inputWord;
+            }
+            catch (...)
+            {
+              continue; // Ignore the Parameter
+            }
 
             *paramCounter += 1; // Parameter Counter
           }
@@ -305,7 +315,7 @@ int main(int argc, char **argv)
         }
       }
 
-      for (int i = 0; i < sortByEnd / 2; i++) // Save the Sort By Array based on the Order they were Introduced
+      for (int i = 0; i < nSortBy; i++) // Save the Sort By Array based on the Order they were Introduced
         if (sortByOrder[i] != -1)
           if (isViewClientsCmd)
             viewClientsCmd.sortBy[i] = sortByOrder[i];

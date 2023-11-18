@@ -9,9 +9,6 @@ Ronald López <a href="https://github.com/RoLpz07">(RoLpz07)</a>.
 ## Programming Languages
 Only C++.
 
-# Getting Started
-To get started with the Minigrep source code, follow these instructions.
-
 ## Installation
 
 1. Clone this repository to your local machine using the following command: ```git clone https://github.com/ralvarezdev/ProyectoLaboratorio_RR```
