@@ -3,10 +3,11 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+
 #include "clientsOp.h"
-#include "..\namespaces.h"
-#include "..\datatables\output.h"
-#include "..\terminal\input.h"
+#include "../namespaces.h"
+#include "../datatables/output.h"
+#include "../terminal/input.h"
 
 using namespace std;
 using namespace commands;

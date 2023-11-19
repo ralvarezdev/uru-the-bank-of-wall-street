@@ -2,8 +2,9 @@
 #include <iomanip>
 #include <fstream>
 #include <string>
+
 #include "transactionsOp.h"
-#include "..\namespaces.h"
+#include "../namespaces.h"
 
 using namespace std;
 using namespace files;

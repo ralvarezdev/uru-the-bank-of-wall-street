@@ -2,7 +2,8 @@
 #include <iostream>
 #include "ansiEsc.h"
 #include "input.h"
-#include "..\namespaces.h"
+
+#include "../namespaces.h"
 
 using namespace std;
 using namespace clients;

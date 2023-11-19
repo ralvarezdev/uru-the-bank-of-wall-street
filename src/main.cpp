@@ -3,11 +3,12 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "lib\clients\clientsOp.h"
-#include "lib\data\dataOp.h"
-#include "lib\terminal\ansiEsc.h"
-#include "lib\terminal\input.h"
-#include "lib\namespaces.h"
+
+#include "lib/clients/clientsOp.h"
+#include "lib/data/dataOp.h"
+#include "lib/terminal/ansiEsc.h"
+#include "lib/terminal/input.h"
+#include "lib/namespaces.h"
 
 using namespace std;
 using namespace clients;

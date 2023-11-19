@@ -3,7 +3,8 @@
 #include <iostream>
 #include <string>
 #include <typeinfo>
-#include "..\namespaces.h"
+
+#include "../namespaces.h"
 
 using namespace std;
 using namespace clients;

@@ -1,4 +1,4 @@
-#include "..\namespaces.h"
+#include "../namespaces.h"
 
 using namespace clients;
 

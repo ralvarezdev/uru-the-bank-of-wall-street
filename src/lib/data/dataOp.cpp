@@ -3,13 +3,14 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "..\namespaces.h"
-#include "..\clients\clientsOp.h"
-#include "..\clients\transactionsOp.h"
-#include "..\data\dataOp.h"
-#include "..\datatables\output.h"
-#include "..\terminal\ansiEsc.h"
-#include "..\terminal\input.h"
+
+#include "../namespaces.h"
+#include "../clients/clientsOp.h"
+#include "../clients/transactionsOp.h"
+#include "../data/dataOp.h"
+#include "../datatables/output.h"
+#include "../terminal/ansiEsc.h"
+#include "../terminal/input.h"
 
 using namespace std;
 using namespace files;
@@ -362,12 +363,6 @@ void sendMoney(Client clients[], int nClientsRead)
       if (idFrom == idTo)
       { // Client Cannot Send to Himself
         pressEnterToCont("Error: You Cannot Send to Yourself", false);
-        continue;
-      }
-
-      if (clientStatus != clientFound)
-      {
-        checkClientStatus(clientStatus);
         continue;
       }
 

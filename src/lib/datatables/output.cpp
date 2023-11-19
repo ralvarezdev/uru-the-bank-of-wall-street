@@ -1,8 +1,9 @@
 #include <iomanip>
 #include <iostream>
-#include "..\terminal\ansiEsc.h"
-#include "..\terminal\input.h"
-#include "..\namespaces.h"
+
+#include "../terminal/ansiEsc.h"
+#include "../terminal/input.h"
+#include "../namespaces.h" 
 
 using namespace clients;
 using namespace commands;

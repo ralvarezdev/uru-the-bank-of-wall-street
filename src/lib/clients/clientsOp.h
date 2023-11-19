@@ -1,5 +1,5 @@
-#include "..\namespaces.h"
-#include "..\terminal\input.h"
+#include "../namespaces.h"
+#include "../terminal/input.h"
 
 using namespace std;
 using namespace commands;
