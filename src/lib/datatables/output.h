@@ -8,7 +8,7 @@ using namespace clients;
 // --- Functions
 void printClientInfo(Client client, bool censoreInfo);
 void printArray(string *params, int m, string paramTitle);
-void print2DArray(string **params, int m, int n, string paramsTitle[]);
-void printClients(Client clients[], int m, bool *fields);
+void print2DArray(string **params, int m, int n, char **paramsTitle);
+void printClients(Clients *clients, bool *fields);
 
 #endif

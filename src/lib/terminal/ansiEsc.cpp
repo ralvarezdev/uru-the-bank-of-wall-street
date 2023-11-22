@@ -13,7 +13,7 @@ void printTitle(string message, bool applySgrBgCmd, bool applySgrFgCmd, bool war
 // --- Functions
 
 // Function to Print Title with Customed Colors
-void printTitle(string message, bool applySgrBgCmd, bool applySgrFgCmd, bool warning)
+void printTitle(string message, bool applySgrBgCmd, bool applySgrFgCmd, bool warning = false)
 {
   string sgrCmd; // String that Stores the SGR Command to Change the Text Format
 

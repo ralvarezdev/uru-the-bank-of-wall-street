@@ -18,24 +18,25 @@ using namespace commands;
 using namespace terminal;
 
 // --- Extern Variables Declaration
-extern bool *fieldValidCmdsPtr;
-extern int *fieldCmdsCharPtr, *sortByCmdsPtr;
-extern string *fieldCmdsStrPtr, *accountPtr;
+extern bool validFieldsToFilter[];
+extern int fieldCmdsChar[];
+extern char *fieldCmdsStr[], *accountStr[];
 
 // --- Function Prototypes
 int isCharOnArray(int character, int array[], int n);
-void viewClients(Client clients[], int nClientsRead, bool fields[], int sortBy[]);
-void filterClients(Client clients[], int nMoviesRead, string **params, int sortBy[]);
+void addClients(Clients *clients);
+void viewClients(Clients *clients, bool fields[], int sortBy[]);
+void filterClients(Clients *clients, string **params, int sortBy[]);
 void validParameters(int nCharTitle);
 void fields();
 void sortByParameters();
 void printExamples(string cmds[], string explanations[], int n);
 void howToUseViewClients();
 void howToUseFilterClients();
-void depositMoney(Client clients[], int nClientsRead);
-void cashoutMoney(Client clients[], int nClientsRead);
-void sendMoney(Client clients[], int nClientsRead);
-void changeStatus(Client clients[], int nClientsRead);
+void depositMoney(Clients *clients);
+void cashoutMoney(Clients *clients);
+void sendMoney(Clients *clients);
+void changeStatus(Clients *clients);
 bool clientActionConfirm(clientActions action);
 int getSortByStr(int sortBy[], string sortByStr[], int n);
 
@@ -51,7 +52,7 @@ int isCharOnArray(int character, int array[], int n)
 }
 
 // Function to Add Clients to clients.csv
-void addClients(Client clients[], int *nClientsRead)
+void addClients(Clients *clients)
 {
   while (true)
   {
@@ -59,7 +60,7 @@ void addClients(Client clients[], int *nClientsRead)
     printTitle("Add Client", applyBgColor, applyFgColor, false);
 
     cout << '\n';
-    addClientToFile(clients, nClientsRead);
+    addClientToFile(clients);
 
     if (!booleanQuestion("Do you want to Add more Clients?"))
       break;
@@ -67,7 +68,7 @@ void addClients(Client clients[], int *nClientsRead)
 }
 
 // Function to View Clients Stored in clients.csv
-void viewClients(Client clients[], int nClientsRead, bool fields[], int sortBy[])
+void viewClients(Clients *clients, bool fields[], int sortBy[])
 {
   int m = fieldEnd - 1, n = sortByEnd / 2;
   string fieldsStr[m], sortByStr[n], applied;
@@ -79,7 +80,7 @@ void viewClients(Client clients[], int nClientsRead, bool fields[], int sortBy[]
   for (int i = 0; i < m; i++)
   {
     applied = fields[i] ? "[Y] " : "[N] ";
-    fieldsStr[i] = applied.append(fieldCmdsStrPtr[i]); // Data to Print in the Field Parameters Row
+    fieldsStr[i] = applied.append(fieldCmdsStr[i]); // Data to Print in the Field Parameters Row
   }
 
   n = getSortByStr(sortBy, sortByStr, n); // Get Sort By Array Length
@@ -93,16 +94,16 @@ void viewClients(Client clients[], int nClientsRead, bool fields[], int sortBy[]
 
   pressEnterToCont("Press ENTER to Continue", false);
 
-  sortClients(clients, nClientsRead, sortBy, sortByEnd); // Sort Clients
-  printClients(clients, nClientsRead, fields);           // Print Clients
+  sortClients(clients, sortBy, sortByEnd); // Sort Clients
+  printClients(clients, fields);           // Print Clients
 
   pressEnterToCont("Press ENTER to Continue", false);
 
-  clientsMergeSort(clients, nClientsRead, sortByIdA); // Return Clients Array to Initial Order
+  clientsMergeSort(clients, sortByIdA); // Return Clients Array to Initial Order
 }
 
 // Function to Filter Clients
-void filterClients(Client clients[], int nClientsRead, string **params, int sortBy[])
+void filterClients(Clients *clients, string **params, int sortBy[])
 {
   int l = fieldEnd - 1, m = maxParamPerSubCmd, n = sortByEnd / 2, nClientsFiltered;
   bool fields[l];
@@ -113,13 +114,13 @@ void filterClients(Client clients[], int nClientsRead, string **params, int sort
 
   cout << clear;
   printTitle("Client Fields Parameters", applyBgColor, applyFgColor, false);
-  print2DArray(params, l, m, fieldCmdsStrPtr);
+  print2DArray(params, l, m, fieldCmdsStr);
   printTitle("Sort By Parameters", applyBgColor, applyFgColor, false);
   printArray(sortByStr, n, "Sort By");
 
   pressEnterToCont("Press ENTER to Continue", false);
 
-  filterClients(clients, nClientsRead, params, fields, sortBy); // Filter Clients
+  filterClients(clients, params, fields, sortBy); // Filter Clients
   cout << '\n';
   pressEnterToCont("Press ENTER to Continue", false);
 }
@@ -141,15 +142,15 @@ void fields()
   cout << clear; // Clear Terminal
   printTitle("Field as a Parameter (for View Clients)", applyBgColor, applyFgColor, false);
   for (int i = 0; i < fieldEnd - 1; i++)
-    cout << tab1 << setw(nCharTitle) << setfill(' ') << addBrackets(fieldCmdsCharPtr[i]) << fieldCmdsStrPtr[i] << '\n';
+    cout << tab1 << setw(nCharTitle) << setfill(' ') << addBrackets(fieldCmdsChar[i]) << fieldCmdsStr[i] << '\n';
   cout << '\n';
 
   printTitle("Field as a Command (for Filter Clients)", applyBgColor, applyFgColor, false);
   for (int i = 0; i < fieldEnd - 1; i++)
-    if (fieldValidCmdsPtr[i])
+    if (validFieldsToFilter[i])
     {
-      temp = addBrackets(fieldCmdsCharPtr[i]).append(" [param...]");
-      cout << tab1 << setw(nCharTitle) << setfill(' ') << temp << "Parameters for Client's " << fieldCmdsStrPtr[i] << '\n';
+      temp = addBrackets(fieldCmdsChar[i]).append(" [param...]");
+      cout << tab1 << setw(nCharTitle) << setfill(' ') << temp << "Parameters for Client's " << fieldCmdsStr[i] << '\n';
     }
   cout << '\n';
 
@@ -168,10 +169,10 @@ void sortByParameters()
   printTitle("Sort By Parameters", applyBgColor, applyFgColor, false);
   for (int i = 0; i < sortByEnd / 2; i++)
   {
-    ascending = addBrackets(sortByCmdsPtr[i * 2]).append(" Ascending");
-    descending = addBrackets(sortByCmdsPtr[i * 2 + 1]).append(" Descending");
+    ascending = addBrackets(fieldCmdsChar[i]).append(" Ascending");
+    descending = addBrackets(toupper(fieldCmdsChar[i])).append(" Descending");
 
-    cout << tab1 << setw(nCharTitle) << setfill(' ') << fieldCmdsStrPtr[i]
+    cout << tab1 << setw(nCharTitle) << setfill(' ') << fieldCmdsStr[i]
          << setw(nCharTitle) << setfill(' ') << ascending
          << setw(nCharTitle) << setfill(' ') << descending << '\n';
   }
@@ -218,7 +219,7 @@ void howToUseFilterClients()
 }
 
 // Function for Clients to Deposit Money in their Accounts
-void depositMoney(Client clients[], int nClientsRead)
+void depositMoney(Clients *clients)
 {
   bool suspended;
   int id, index;
@@ -233,7 +234,7 @@ void depositMoney(Client clients[], int nClientsRead)
   while (true)
   {
     id = getClientId("Client ID");
-    clientStatus = checkClient(clients, nClientsRead, id, fieldId, &index); // Check if the Clients Exists
+    clientStatus = checkClient(clients, id, fieldId, &index); // Check if the Clients Exists
 
     if (clientStatus != clientFound)
       checkClientStatus(clientStatus);
@@ -247,7 +248,7 @@ void depositMoney(Client clients[], int nClientsRead)
     }
 
     cout << '\n';
-    printClientInfo(clients[index], true); // Print Client Info
+    printClientInfo((*clients).getClient(index), true); // Print Client Info
     cout << '\n';
     if (booleanQuestion("Is this your Client Account?"))
       break;
@@ -261,14 +262,14 @@ void depositMoney(Client clients[], int nClientsRead)
       message = "You Have Successfully Deposited $";
       message.append(toStringWithPrecision(amount, precision));
 
-      storeBalance(clientDeposit, id, clients[index].account, amount);
+      storeBalance(clientDeposit, id, (*clients).getClient(index).account, amount);
       pressEnterToCont(message, false);
     }
   }
 }
 
 // Function for Clients to Cashout Money from their Accounts
-void cashoutMoney(Client clients[], int nClientsRead)
+void cashoutMoney(Clients *clients)
 {
   bool suspended;
   int id, index;
@@ -283,7 +284,7 @@ void cashoutMoney(Client clients[], int nClientsRead)
   while (true)
   {
     id = getClientId("Client ID");
-    clientStatus = checkClient(clients, nClientsRead, id, fieldId, &index); // Check if the Clients Exists
+    clientStatus = checkClient(clients, id, fieldId, &index); // Check if the Clients Exists
 
     if (clientStatus != clientFound)
       checkClientStatus(clientStatus);
@@ -297,7 +298,7 @@ void cashoutMoney(Client clients[], int nClientsRead)
     }
 
     cout << '\n';
-    printClientInfo(clients[index], true); // Print Client Info
+    printClientInfo((*clients).getClient(index), true); // Print Client Info
     cout << '\n';
     if (booleanQuestion("Is this your Client Account?"))
       break;
@@ -311,14 +312,14 @@ void cashoutMoney(Client clients[], int nClientsRead)
       message = "You Have Successfully Cashed Out $";
       message.append(toStringWithPrecision(amount, precision));
 
-      storeBalance(clientCashout, id, clients[index].account, amount);
+      storeBalance(clientCashout, id, (*clients).getClient(index).account, amount);
       pressEnterToCont(message, false);
     }
   }
 }
 
 // Function for Clients to Transfer Money from their Balance to other Client Accounts
-void sendMoney(Client clients[], int nClientsRead)
+void sendMoney(Clients *clients)
 {
   bool suspended;
   int idFrom, idTo, indexFrom, indexTo;
@@ -333,7 +334,7 @@ void sendMoney(Client clients[], int nClientsRead)
   while (true)
   {
     idFrom = getClientId("Client ID");
-    clientStatus = checkClient(clients, nClientsRead, idFrom, fieldId, &indexFrom); // Check if the Clients Exists
+    clientStatus = checkClient(clients, idFrom, fieldId, &indexFrom); // Check if the Clients Exists
 
     if (clientStatus != clientFound)
       checkClientStatus(clientStatus);
@@ -347,7 +348,7 @@ void sendMoney(Client clients[], int nClientsRead)
     }
 
     cout << '\n';
-    printClientInfo(clients[indexFrom], true); // Print Client Info
+    printClientInfo((*clients).getClient(indexFrom), true); // Print Client Info
     cout << '\n';
     if (booleanQuestion("Is this your Client Account?"))
       break;
@@ -358,7 +359,7 @@ void sendMoney(Client clients[], int nClientsRead)
     while (true)
     {
       idTo = getClientId("Send to Client Id");
-      clientStatus = checkClient(clients, nClientsRead, idTo, fieldId, &indexTo); // Check if the Clients Exists
+      clientStatus = checkClient(clients, idTo, fieldId, &indexTo); // Check if the Clients Exists
 
       if (idFrom == idTo)
       { // Client Cannot Send to Himself
@@ -367,7 +368,7 @@ void sendMoney(Client clients[], int nClientsRead)
       }
 
       cout << '\n';
-      printClientInfo(clients[indexTo], true); // Print Client Info
+      printClientInfo((*clients).getClient(indexTo), true); // Print Client Info
       cout << '\n';
       if (booleanQuestion("Is this the Account you Want to Send the Money to?"))
         break;
@@ -379,15 +380,15 @@ void sendMoney(Client clients[], int nClientsRead)
       message = "You Have Successfully Sent $";
       message.append(toStringWithPrecision(amount, precision));
 
-      storeTransactions(idFrom, clients[indexFrom].account, amount, idTo);
-      storeBalance(clientSend, idFrom, clients[indexFrom].account, amount);
+      storeTransactions(idFrom, (*clients).getClient(indexFrom).account, amount, idTo);
+      storeBalance(clientSend, idFrom, (*clients).getClient(indexFrom).account, amount);
       pressEnterToCont(message, false);
     }
   }
 }
 
 // Function to Change the Status of a Client
-void changeStatus(Client clients[], int nClientsRead)
+void changeStatus(Clients *clients)
 {
   bool change;
   string temp;
@@ -400,7 +401,7 @@ void changeStatus(Client clients[], int nClientsRead)
   cout << '\n';
 
   id = getClientId("Client ID to Change Status");
-  clientStatus = checkClient(clients, nClientsRead, id, fieldId, &index); // Check if the Clients Exists
+  clientStatus = checkClient(clients, id, fieldId, &index); // Check if the Clients Exists
 
   if (clientStatus == clientNotFound)
     checkClientStatus(clientStatus);
@@ -417,24 +418,27 @@ void changeStatus(Client clients[], int nClientsRead)
     else
     {
       message = "Client Found: Changed Status";
-
-      clients[index].suspended = !clients[index].suspended; // Change Status of Client
+      (*clients).changeClientStatus(index);
 
       ofstream outfile(clientsFilename);
 
+      Client client;
       string suspended;
-      for (int i = 0; i < nClientsRead; i++) // Write to File
-      {
-        suspended = (clients[i].suspended) ? "true" : "false"; // Get Account Status
 
-        outfile << clients[i].id << sep << clients[i].name << sep
-                << setw(maxAccountDigits) << setfill('0') << right << fixed << setprecision(0) << clients[i].account << left
-                << sep << accountPtr[clients[i].type] << sep << suspended << '\n';
+      for (int i = 0; i < (*clients).getNumberClients(); i++) // Write to File
+      {
+        client = (*clients).getClient(i);
+
+        suspended = (client.suspended) ? "true" : "false"; // Get Account Status
+
+        outfile << client.id << sep << client.name << sep
+                << setw(maxAccountDigits) << setfill('0') << right << fixed << setprecision(0) << client.account << left
+                << sep << accountStr[client.type] << sep << suspended << '\n';
       }
 
       outfile.close(); // Close file
     }
-    printClientInfo(clients[index], true);
+    printClientInfo((*clients).getClient(index), true);
     pressEnterToCont(message, false);
   }
 }
@@ -473,14 +477,14 @@ int getSortByStr(int sortBy[], string sortByStr[], int n)
 
     if (charIndex == -1)
       nullParam = true;
-    else if (isupper(sortByCmdsPtr[charIndex]))
-      order = "[D] ";
-    else
+    else if (charIndex % 2 == 0)
       order = "[A] ";
+    else
+      order = "[D] ";
 
     if (!nullParam)
     {
-      sortByStr[nParams] = order.append(fieldCmdsStrPtr[charIndex / 2]); // Data to Print in the Sort By Parameters Row
+      sortByStr[nParams] = order.append(fieldCmdsStr[charIndex / 2]); // Data to Print in the Sort By Parameters Row
       nParams++;
     }
   }

@@ -130,7 +130,7 @@ void checkClientStatus(clientStatus clientStatus)
 }
 
 // Function to Stop the Program Flow while the User doesn't press the ENTER key
-void pressEnterToCont(string message, bool warning)
+void pressEnterToCont(string message, bool warning = false)
 {
   string temp;
 

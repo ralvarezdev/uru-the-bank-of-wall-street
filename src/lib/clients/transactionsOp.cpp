@@ -10,6 +10,9 @@ using namespace std;
 using namespace files;
 using namespace clients;
 
+// --- Extern Variables Declaration
+extern char *actionsStr[];
+
 // Function to Store Updates of Clients Balance
 void storeBalance(clientActions action, int clientId, double account, float amount)
 {
@@ -18,7 +21,7 @@ void storeBalance(clientActions action, int clientId, double account, float amou
     // Client Id, Account Number, Action, Amount
     outfile << clientId << sep // Write to File at Last Line
             << setw(maxAccountDigits) << setfill('0') << fixed << setprecision(0) << account
-            << sep << actionsPtr[action]
+            << sep << actionsStr[action]
             << sep << amount << "\n";
     outfile.close();
 }

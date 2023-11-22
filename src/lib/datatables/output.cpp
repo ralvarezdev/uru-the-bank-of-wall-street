@@ -3,21 +3,21 @@
 
 #include "../terminal/ansiEsc.h"
 #include "../terminal/input.h"
-#include "../namespaces.h" 
+#include "../namespaces.h"
 
 using namespace clients;
 using namespace commands;
 using namespace terminal;
 
 // --- Extern Variables Declaration
-extern bool *fieldValidCmdsPtr;
-extern string *fieldCmdsStrPtr, *accountPtr;
+extern bool validFieldsToFilter[];
+extern char *fieldCmdsStr[], *accountStr[];
 
 // --- Function Prototypes
 void printClientInfo(Client client, bool censoreInfo);
 void printArray(string *params, int m, string paramTitle);
-void print2DArray(string **params, int m, int n, string paramsTitle[]);
-void printClients(Client clients[], int m, bool *fields);
+void print2DArray(string **params, int m, int n, char **paramsTitle);
+void printClients(Clients *clients, bool *fields);
 
 // --- Functions For Output Styling
 
@@ -27,7 +27,7 @@ void printExamples(string cmds[], string explanations[], int n)
   const int nCharLine = nChar - tab1.length(); // Number of Characters for Each Line
 
   int printedChar, messageLength; // Number of Characters Printed in the Current Line and the Length of Message String
-  string message, lastIter;       // Temp Data
+  string message;                 // Temp Data
 
   cout << clear;                                             // Clear Terminal
   printTitle("Examples", applyBgColor, applyFgColor, false); // Examples of the Usage of the Search Command
@@ -45,6 +45,7 @@ void printExamples(string cmds[], string explanations[], int n)
     cout << tab1 << string(nCharTitle, '-') << '\n';
 
     stringstream stream(explanations[i]); // To Print the Message with New Line each time it Reaches nCharLine
+
     while (getline(stream, message, ' '))
     {
       messageLength = message.length();
@@ -99,7 +100,7 @@ void printArray(string *params, int n, string paramTitle)
 }
 
 // Function to Print a 2D Data Table
-void print2DArray(string **params, int m, int n, string paramsTitle[])
+void print2DArray(string **params, int m, int n, char **paramsTitle)
 {
   for (int i = 0; i < m; i++)
     if (params[i][0] != "null")
@@ -111,32 +112,32 @@ void printClientInfo(Client client, bool censoreInfo)
 {
   int nCharContent = nChar - nCharField;
   int nAccountCensored = 7;                                       // Number of Characters from Account Number that are Censored
-  string accountType = accountPtr[client.type];                   // Get Client Type
+  string accountType = accountStr[client.type];                   // Get Client Type
   string suspended = (client.suspended) ? "Suspended" : "Active"; // Get Client Status
 
   printTitle("Client Info", applyBgColor, applyFgColor, false);
 
-  cout << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldId] << client.id << '\n'; // Print Client Id
+  cout << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldId] << client.id << '\n'; // Print Client Id
 
-  cout << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldName]; // Print Client Name
+  cout << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldName]; // Print Client Name
   if (client.name.length() < nCharContent)
     cout << setw(nCharContent) << setfill(' ') << client.name << '\n';
   else
     cout << client.name.substr(0, nCharContent - 4) << "... " << '\n';
 
   if (!censoreInfo)
-    cout << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldAccountNumber]
-         << setfill(' ') << fixed << setprecision(0) << client.account << '\n'                           // Print Client Account Number
-         << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldAccountType] << accountType << '\n' // Print Client Account Type
-         << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldSuspended] << suspended << '\n';    // Print Client Suspend Status
+    cout << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountNumber]
+         << setfill(' ') << fixed << setprecision(0) << client.account << '\n'                         // Print Client Account Number
+         << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountType] << accountType << '\n'  // Print Client Account Type
+         << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountStatus] << suspended << '\n'; // Print Client Suspend Status
   else
-    cout << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldAccountNumber]
+    cout << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountNumber]
          << string(nAccountCensored, 'X') << getLastDigits(client.account, maxAccountDigits - nAccountCensored) << '\n' // Print Client Account Number
-         << setw(nCharField) << setfill(' ') << fieldCmdsStrPtr[fieldAccountType] << accountType << '\n';               // Print Client Account Type
+         << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountType] << accountType << '\n';                  // Print Client Account Type
 }
 
 // Function to Print Clients
-void printClients(Client clients[], int m, bool *fields)
+void printClients(Clients *clients, bool *fields)
 {
   const int nId = 15;            // Number of Characters for Id
   const int nAccountType = 15;   // ... for Account Type
@@ -155,39 +156,37 @@ void printClients(Client clients[], int m, bool *fields)
   cout << clear << sgrBgCmd << sgrFgCmd;
   for (int i = 0; i < n; i++)
     if (fields[i])
-      cout << setw(fieldsNChar[i]) << setfill(' ') << fieldCmdsStrPtr[i]; // Field Title
+      cout << setw(fieldsNChar[i]) << setfill(' ') << fieldCmdsStr[i]; // Field Title
   cout << reset << '\n';
 
   // Print Clients
   string temp;
+  Client client;
 
-  for (int i = 0; i < m; i++)
+  for (int i = 0; i < (*clients).getNumberClients(); i++)
   {
-    // Client Id
-    if (fields[fieldId])
-      cout << setw(nId) << setfill(' ') << clients[i].id;
+    client = (*clients).getClient(i); // Get Client
 
-    // Client Title
-    if (fields[fieldName])
-      if (clients[i].name.length() < nName)
-        cout << setw(nName) << setfill(' ') << clients[i].name;
+    if (fields[fieldId]) // Client Id
+      cout << setw(nId) << setfill(' ') << client.id;
+
+    if (fields[fieldName]) // Client Title
+      if (client.name.length() < nName)
+        cout << setw(nName) << setfill(' ') << client.name;
       else
-        cout << clients[i].name.substr(0, nName - 4) << "... ";
+        cout << client.name.substr(0, nName - 4) << "... ";
 
-    // Client Account Type
-    if (fields[fieldAccountType])
-      cout << setw(nAccountType) << setfill(' ') << accountPtr[clients[i].type];
+    if (fields[fieldAccountType]) // Client Account Type
+      cout << setw(nAccountType) << setfill(' ') << accountStr[client.type];
 
-    // Client Suspended Status
-    if (fields[fieldSuspended])
+    if (fields[fieldAccountStatus]) // Client Suspended Status
     {
-      temp = (clients[i].suspended) ? "Suspended" : "Active";
+      temp = (client.suspended) ? "Suspended" : "Active";
       cout << setw(nSuspended) << setfill(' ') << temp;
     }
 
-    // Client Account Number
-    if (fields[fieldAccountNumber])
-      cout << fixed << setprecision(0) << setw(nAccountNumber) << setfill(' ') << clients[i].account;
+    if (fields[fieldAccountNumber]) // Client Account Number
+      cout << fixed << setprecision(0) << setw(nAccountNumber) << setfill(' ') << client.account;
 
     cout << '\n';
   }

@@ -29,17 +29,16 @@ string addBrackets(T message)
 
 // --- Functions
 int isCharOnArray(int character, int array[], int n);
-void addClients(Client clients[], int *nClientsRead);
-void viewClients(Client clients[], int nClientsRead, bool fields[], int sortBy[]);
-void filterClients(Client clients[], int nMoviesRead, string **params, int sortBy[]);
+void addClients(Clients *clients);
+void viewClients(Clients *clients, bool fields[], int sortBy[]);
+void filterClients(Clients *clients, string **params, int sortBy[]);
 void fields(); // As a Parameter or as a Subcommand
 void sortByParameters();
 void howToUseViewClients();
 void howToUseFilterClients();
-void depositMoney(Client clients[], int nClientsRead);
-void cashoutMoney(Client clients[], int nClientsRead);
-void sendMoney(Client clients[], int nClientsRead);
-void printClientInfo(Client client, bool censoreInfo);
-void changeStatus(Client clients[], int nClientsRead);
+void depositMoney(Clients *clients);
+void cashoutMoney(Clients *clients);
+void sendMoney(Clients *clients);
+void changeStatus(Clients *clients);
 
 #endif

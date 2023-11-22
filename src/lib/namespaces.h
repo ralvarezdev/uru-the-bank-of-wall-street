@@ -43,6 +43,42 @@ namespace terminal
 
 namespace clients
 { // Enums Should be at the Beginning
+  // - Clients Fields
+  // Used to Select which Fields to Print in View Clients Command
+  // or Used to Specify where to Filter the Parameter from, if it's
+  // Typed Right After the Field
+  enum fieldCmds
+  {
+    fieldId,
+    fieldName,
+    fieldAccountType,
+    fieldAccountStatus,
+    fieldAccountNumber,
+    fieldBalance,
+    fieldAll,
+    fieldEnd // To get the number of Fields. SHOULD BE AT THE END
+  };
+
+  // - Sort By Commands
+  // A: Ascending
+  // D: Descending
+  enum sortByCmds
+  {
+    sortByIdA,
+    sortByIdD,
+    sortByNameA,
+    sortByNameD,
+    sortByTypeA,
+    sortByTypeD,
+    sortBySuspendedA,
+    sortBySuspendedD,
+    sortByAccountA,
+    sortByAccountD,
+    sortByBalanceA,
+    sortByBalanceD,
+    sortByEnd // To get the number of Sort By Commands. SHOULD BE AT THE END
+  };
+
   // - Invalid Client Data
   enum invalidClient
   {
@@ -97,16 +133,139 @@ namespace clients
     double account; // Client Account Number
     int type;       // Client Account Type
     bool suspended; // If the Account was Suspended
+    float balance;  // Client Balance
+  };
+
+  // Clients Dynamic Array Class
+  class Clients
+  {
+  private:
+    Client *array = NULL; // Initializes as Null Pointer
+    int capacity;
+    int occupied; // Number of Elements that have been Added to the Array
+
+  public:
+    Clients()
+    { // Default Constructor
+      this->capacity = 2;
+      this->occupied = 0;
+      this->array = new Client[capacity];
+    }
+
+    Clients(int inputCapacity)
+    { // Constructor with Capacity Given by the User
+      this->capacity = inputCapacity;
+      this->array = new Client[capacity];
+    }
+
+    int getCapacity() { return this->capacity; } // Return Array Capacity
+
+    int getNumberClients() { return this->occupied; } // Return Number of Clients Appended to the Array
+
+    Client getClient(int index) { return this->array[index]; } // Return Client Structure at the Given Index
+
+    void changeClientStatus(int index)
+    { // Activate the Client if it was Suspended. Suspend the Client if it was Active
+      if (index < this->occupied)
+        this->array[index].suspended = !this->array[index].suspended; // Change Status of Client
+    }
+
+    void pushBack(Client newClient)
+    {
+      if (this->occupied == this->capacity)
+        increaseArrayCapacity(); // Double the Capacity of the Array
+
+      this->array[this->occupied] = newClient;
+      this->occupied++;
+    }
+
+    void increaseArrayCapacity() // Function to Double the Array Capacity
+    {
+      Client *temp = new Client[2 * this->capacity];
+      for (int i = 0; i < this->occupied; i++)
+        temp[i] = this->array[i]; // Copy Pointer to Client Structures
+
+      delete[] this->array; // Delete Old Array
+
+      this->array = temp; // Assign New Array
+      this->capacity *= 2;
+    }
+
+    void insertAt(int index, Client client)
+    { // Function to Insert Client. If the Index hasn't been Occupied. The Client will be Pushed Back
+      if (index >= this->occupied)
+        pushBack(client);
+      else
+        this->array[index] = client; // Insert Client at Given Index
+    }
+
+    void deleteAt(int index) // Function to Delete Client at Given Index
+    {
+      for (int i = index; i < this->occupied; i++)
+        this->array[i] = this->array[i + 1]; // Move Clients
+
+      this->occupied--; // Reduce Occupied Variable
+    }
+
+    void reverse() // Function to Swap the Order of the Array
+    {
+      int j = 0, n = this->getNumberClients();
+      Client temp;
+
+      for (int i = n - 1; i > (n - 1) / 2; i-- && j++)
+      {
+        temp = this->array[j];
+
+        this->array[j] = this->array[i];
+        this->array[i] = temp;
+      }
+    }
+
+    Client compare(int *i, int *j, fieldCmds field, int increaseIndexBy = 0) // Function to Compare Client Fields
+    {
+      bool isI = false;
+
+      switch (field)
+      {
+      case fieldCmds::fieldId:
+        isI = (this->array[*i].id < this->array[*j].id);
+        break;
+      case fieldCmds::fieldName:
+        isI = (this->array[*i].name.compare(this->array[*j].name) < 0);
+        break;
+      case fieldCmds::fieldAccountNumber:
+        isI = (this->array[*i].account < this->array[*j].account);
+        break;
+      case fieldCmds::fieldAccountType:
+        isI = (this->array[*i].type < this->array[*j].type);
+        break;
+      case fieldCmds::fieldBalance:
+        isI = (this->array[*i].balance < this->array[*j].balance);
+        break;
+      }
+
+      if (increaseIndexBy != 0)
+        if (isI)
+          *i = *i + 1;
+        else
+          *j = *j + 1;
+
+      return (isI) ? this->array[*i - 1] : this->array[*j - 1];
+    }
+
+    void deallocate() // Functin to Deallocate Memory
+    {
+      delete[] this->array;
+    }
   };
 
   const int precision = 2;                                // Precision for Floats and Doubles
-  const int nClients = 10000;                             // Max Number of Clients
   const string clientsFilename = "clients.csv";           // Clients Filename
   const string transactionsFilename = "transactions.csv"; // Transactions Filename (STORES TRANSACTIONS BETWEEN CLIENTS)
   const string balancesFilename = "balances.csv";         // Clients Movements Filename (STORES DEPOSITS, CASHOUTS AND TRANSACTIONS)
   const int maxAccountDigits = 10;                        // Maximum Number of Digits for Account Number
   const float minDeposit = 0;                             // Minimum Amount to Deposit
-  const float maxDeposit = 100000;                        // Maximum Amount to Deposit
+  const float maxDeposit = 1000000;                       // Maximum Amount to Deposit
 }
 
 namespace commands
@@ -115,6 +274,9 @@ namespace commands
   {
     cmdViewClients,
     cmdFilterClients,
+    cmdAddClient,
+    cmdRemoveClient,
+    cmdChangeStatus,
     cmdDepositMoney,
     cmdCashoutMoney,
     cmdSendMoney,
@@ -124,8 +286,6 @@ namespace commands
     cmdHowToUseFilterClients,
     cmdHelp,
     cmdExit,
-    cmdAddClient,
-    cmdSuspendAccount,
     cmdEnd // To get the number of Commands. SHOULD BE AT THE END
   };
 
@@ -135,39 +295,6 @@ namespace commands
     subCmdField,
     subCmdSortBy,
     subCmdEnd // To get the number of Subcommands. SHOULD BE AT THE END
-  };
-
-  // - Clients Fields
-  // Used to Select which Fields to Print in View Clients Command
-  // or Used to Specify where to Filter the Parameter from, if it's
-  // Typed Right After the Field
-  enum fieldCmds
-  {
-    fieldId,
-    fieldName,
-    fieldAccountType,
-    fieldSuspended,
-    fieldAccountNumber,
-    fieldAll,
-    fieldEnd // To get the number of Fields. SHOULD BE AT THE END
-  };
-
-  // - Sort By Commands
-  // A: Ascending
-  // D: Descending
-  enum sortByCmds
-  {
-    sortByIdA,
-    sortByIdD,
-    sortByNameA,
-    sortByNameD,
-    sortByTypeA,
-    sortByTypeD,
-    sortBySuspendedA,
-    sortBySuspendedD,
-    sortByAccountA,
-    sortByAccountD,
-    sortByEnd // To get the number of Sort By Commands. SHOULD BE AT THE END
   };
 
   // - Command Status if it's Valid or not
@@ -190,17 +317,17 @@ namespace commands
   // - View Clients Command Parameters Structure
   struct ViewClientsCmd
   {
-    bool params[fieldEnd];     // 1D Array to Save the Fields to Show in View Clients
-    int sortBy[sortByEnd / 2]; // For a Field, only Allowed Ascending or Descending Order, not Both at the Same Time
+    bool params[clients::fieldEnd];     // 1D Array to Save the Fields to Show in View Clients
+    int sortBy[clients::sortByEnd / 2]; // For a Field, only Allowed Ascending or Descending Order, not Both at the Same Time
   };
 
   // - Filter Clients Command Parameters Structure
   struct FilterClientsCmd
   {
-    string params[fieldEnd][maxParamPerSubCmd]; // 2D String Array of Clients Parameters
-    string *paramsPtr[fieldEnd];                // 1D Pointer Array to to the 2D Array
-    int counter[fieldEnd];
-    int sortBy[sortByEnd / 2]; // For a Field, only Allowed Ascending or Descending Order, not Both at the Same Time
+    string params[clients::fieldEnd][maxParamPerSubCmd]; // 2D String Array of Clients Parameters
+    string *paramsPtr[clients::fieldEnd];                // 1D Pointer Array to to the 2D Array
+    int counter[clients::fieldEnd];
+    int sortBy[clients::sortByEnd / 2]; // For a Field, only Allowed Ascending or Descending Order, not Both at the Same Time
   };
 
   // - Command Structure

@@ -9,29 +9,31 @@ using namespace clients;
 #define CLIENTS_H
 
 // --- Functions
-int getClients(Client clients[]);
-void filterClients(Client clients[], int nClientsRead, string **params, bool fields[], int sortBy[]);
-void addClientToFile(Client clients[], int *nClientsRead);
-void sortClients(Client clients[], int m, int sortBy[], int n);
-void clientsMergeSort(Client clients[], int n, int sortByIndex);
+void getClients(Clients *clients);
+void filterClients(Clients *clients, string **params, bool fields[], int sortBy[]);
+void addClientToFile(Clients *clients);
+void sortClients(Clients *clients, int sortBy[], int n);
+void clientsMergeSort(Clients *clients, int sortByIndex);
 int getClientId(string message);
 
 // --- Templates
 
 // Function to Check if Client Unique Fields have been Ocuppied
 template <typename T>
-clientStatus checkClient(Client clients[], int nClientsRead, T unique, fieldCmds field, int *index)
+clientStatus checkClient(Clients *clients, T unique, fieldCmds field, int *index)
 {
   if (field != fieldId && field != fieldAccountNumber)
     return errorStatus;
   else if (field == fieldId)
-    clientsMergeSort(clients, nClientsRead, sortByIdA); // Sort Clients by Id
+    clientsMergeSort(clients, sortByIdA); // Sort Clients by Id
   else if (field == fieldAccountNumber)
-    clientsMergeSort(clients, nClientsRead, sortByAccountA); // Sort Clients by Account Number
+    clientsMergeSort(clients, sortByAccountA); // Sort Clients by Account Number
+
+  Client client;
 
   bool found = false;
   T value;
-  int mid, start = 0, end = nClientsRead - 1;
+  int mid, start = 0, end = (*clients).getNumberClients() - 1;
   string line;
 
   while (start <= end)
@@ -40,10 +42,12 @@ clientStatus checkClient(Client clients[], int nClientsRead, T unique, fieldCmds
 
     try
     {
+      client = (*clients).getClient(mid); // Get Client at the Given Index
+
       if (field == fieldId)
-        value = clients[mid].id;
+        value = client.id;
       else if (field == fieldAccountNumber)
-        value = clients[mid].account;
+        value = client.account;
 
       found = (value == unique);
     }
@@ -60,9 +64,9 @@ clientStatus checkClient(Client clients[], int nClientsRead, T unique, fieldCmds
       if (field == fieldId)
         *index = mid;
       else if (field == fieldAccountNumber)
-        checkClient(clients, nClientsRead, clients[mid].id, fieldId, index); // Get Index of Client with that Account Number when the Array is Sorted by Id
+        checkClient(clients, client.id, fieldId, index); // Get Index of Client with that Account Number when the Array is Sorted by Id
 
-      if (clients[*index].suspended)
+      if ((*clients).getClient(*index).suspended)
         return clientSuspended;
       else
         return clientFound;
