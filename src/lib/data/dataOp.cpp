@@ -25,12 +25,12 @@ extern char *fieldCmdsStr[], *accountStr[];
 // --- Function Prototypes
 int isCharOnArray(int character, int array[], int n);
 void addClients(Clients *clients);
+void removeClient(Client *clients);
 void viewClients(Clients *clients, bool fields[], int sortBy[]);
 void filterClients(Clients *clients, string **params, int sortBy[]);
 void validParameters(int nCharTitle);
 void fields();
 void sortByParameters();
-void printExamples(string cmds[], string explanations[], int n);
 void howToUseViewClients();
 void howToUseFilterClients();
 void depositMoney(Clients *clients);
@@ -67,10 +67,110 @@ void addClients(Clients *clients)
   }
 }
 
+// Function to Remove Client from clients.csv
+void removeClient(Clients *clients)
+{
+  /*
+  clientStatus check;
+  int id, index;
+  string temp;
+
+  while (true) // Get Client ID
+    try
+    {
+      cout << "ID: ";
+      getline(cin, temp);
+      id = stoi(temp);
+
+      if (id <= 0)
+        throw(-1); // ID Must be in the Range 0<ID<n
+
+      check = checkClient(clients, id, fieldId, &index);
+      break;
+    }
+    catch (...)
+    {
+      wrongClientData(invalidClientId);
+    }
+
+  if (check != clientNotFound) // The Id has been Added to that File
+    wrongClientData(clientExists);
+
+  void eliminarUsuario(const std::string &archivoCSV, const std::string &ci)
+  {
+    std::ifstream file(archivoCSV);
+    std::ofstream outfile("temp.csv");
+    Usuario usuario;
+
+    if (file.is_open() && outfile.is_open())
+    {
+      std::string line;
+      while (std::getline(file, line))
+      {
+        std::stringstream ss(line);
+        std::string token;
+
+        std::getline(ss, token, ',');
+        usuario.ci = token;
+        std::getline(ss, token, ',');
+        usuario.nombre = token;
+        std::getline(ss, token, ',');
+        usuario.numeroCuenta = token;
+        std::getline(ss, token, ',');
+        usuario.tipoCuenta = token;
+        std::getline(ss, token, ',');
+        usuario.cuentaSuspendida = (token == "true");
+
+        if (usuario.ci != ci)
+        {
+          outfile << usuario.ci << "," << usuario.nombre << "," << usuario.numeroCuenta << "," << usuario.tipoCuenta << "," << (usuario.cuentaSuspendida ? "true" : "false") << std::endl;
+        }
+      }
+
+      file.close();
+      outfile.close();
+
+      if (std::remove(archivoCSV.c_str()) == 0)
+      {
+        if (std::rename("temp.csv", archivoCSV.c_str()) == 0)
+        {
+          std::cout << "Usuario eliminado correctamente." << std::endl;
+        }
+        else
+        {
+          std::cout << "Error al renombrar el archivo temporal." << std::endl;
+        }
+      }
+      else
+      {
+        std::cout << "Error al eliminar el archivo original." << std::endl;
+      }
+    }
+    else
+    {
+      std::cout << "Error al abrir el archivo." << std::endl;
+    }
+  }
+
+  int main()
+  {
+    std::string archivoCSV = "clients.csv";
+    std::string ci;
+
+    std::cout << "Ingrese la cédula del usuario que desea eliminar: ";
+    std::cin >> ci;
+
+    eliminarUsuario(archivoCSV, ci);
+    system("pause");
+    return 0;
+  }
+  */
+}
+
 // Function to View Clients Stored in clients.csv
 void viewClients(Clients *clients, bool fields[], int sortBy[])
 {
-  int m = fieldEnd - 1, n = sortByEnd / 2;
+  int l, m = fieldEnd - 1, n = sortByEnd / 2;
   string fieldsStr[m], sortByStr[n], applied;
 
   if (fields[fieldAll])
@@ -83,19 +183,19 @@ void viewClients(Clients *clients, bool fields[], int sortBy[])
     fieldsStr[i] = applied.append(fieldCmdsStr[i]); // Data to Print in the Field Parameters Row
   }
 
-  n = getSortByStr(sortBy, sortByStr, n); // Get Sort By Array Length
+  l = getSortByStr(sortBy, sortByStr, n); // Get Sort By Array Length
 
   cout << clear;
   printTitle("Clients Fields", applyBgColor, applyFgColor, false);
   printArray(fieldsStr, m, "Fields");
 
   printTitle("Sort By Parameters", applyBgColor, applyFgColor, false);
-  printArray(sortByStr, n, "Sort By");
+  printArray(sortByStr, l, "Sort By");
 
   pressEnterToCont("Press ENTER to Continue", false);
 
-  sortClients(clients, sortBy, sortByEnd); // Sort Clients
-  printClients(clients, fields);           // Print Clients
+  sortClients(clients, sortBy, n); // Sort Clients
+  printClients(clients, fields);   // Print Clients
 
   pressEnterToCont("Press ENTER to Continue", false);
 
@@ -185,13 +285,13 @@ void sortByParameters()
 void howToUseViewClients()
 {
   const int nCmds = 3; // Number of Code Examples
-  string cmds[nCmds] = {"v -f . -s i",
-                        "v -f i n -s I", "v -f i t -s S"};
 
-  string explanations[nCmds] = {"View All Client Fields. Sort them by Id in Ascending Order",
-                                "View Id and Client Name Field. Sort them by Id in Descending Order", "View Id and Account Type Fields. Sort them by Suspended Status in Descending Order"};
+  cmdExplanation examples[nCmds] = {
+      cmdExplanation{"v -f . -s i", "View All Client Fields. Sort them by Id in Ascending Order"},
+      cmdExplanation{"v -f i n -s I", "View Id and Client Name Field. Sort them by Id in Descending Order"},
+      cmdExplanation{"v -f i t -s S", "View Id and Account Type Fields. Sort them by Suspended Status in Descending Order"}};
 
-  printExamples(cmds, explanations, nCmds);
+  printExamples(examples, nCmds);
 
   cout << '\n';
   pressEnterToCont("Press ENTER to Continue", false);
@@ -201,18 +301,18 @@ void howToUseViewClients()
 void howToUseFilterClients()
 {
   const int nCmds = 4; // Number of Code Examples
-  string cmds[nCmds] = {"f -f --n Ramon Ronald -s i",
-                        "f -f --n \"Ramon Alvarez\" \"Ronald Lopez\" -s I",
-                        "f -f --n Ronald --i 123456789 -s a",
-                        "f -f --n Ramon --a 100200300 -s N"};
 
-  string explanations[nCmds] = {
-      "Search for Clients Named as Ramon or Ronald. Sort them by Id in Ascending Order",
-      "Search for Clients Named as Ramon Alvarez or Ronald Lopez. Sort them by Id in Descending Order",
-      "Search for Clients Named as Ronald and the Client with Id 123456789. Sort them by Account Number",
-      "Search for Clients Named as Ramon and the Client with Account Number 100200300. Sort them by Name in Descending Order"};
+  cmdExplanation examples[nCmds] = {
+      cmdExplanation{
+          "f -f --n Ramon Ronald -s i", "Search for Clients Named as Ramon or Ronald. Sort them by Id in Ascending Order"},
+      cmdExplanation{
+          "f -f --n \"Ramon Alvarez\" \"Ronald Lopez\" -s I", "Search for Clients Named as Ramon Alvarez or Ronald Lopez. Sort them by Id in Descending Order"},
+      cmdExplanation{
+          "f -f --n Ronald --i 123456789 -s a", "Search for Clients Named as Ronald and the Client with Id 123456789. Sort them by Account Number"},
+      cmdExplanation{
+          "f -f --n Ramon --a 100200300 -s N", "Search for Clients Named as Ramon and the Client with Account Number 100200300. Sort them by Name in Descending Order"}};
 
-  printExamples(cmds, explanations, nCmds);
+  printExamples(examples, nCmds);
 
   cout << '\n';
   pressEnterToCont("Press ENTER to Continue", false);
@@ -222,10 +322,11 @@ void howToUseFilterClients()
 void depositMoney(Clients *clients)
 {
   bool suspended;
-  int id, index;
+  clientStatus check;
+  Client client;
   float amount;
-  string message;
-  clientStatus clientStatus;
+  int id, index;
+  string time, message;
 
   cout << clear; // Clear Terminal
   printTitle("Deposit Money", applyBgColor, applyFgColor, false);
@@ -233,36 +334,38 @@ void depositMoney(Clients *clients)
 
   while (true)
   {
-    id = getClientId("Client ID");
-    clientStatus = checkClient(clients, id, fieldId, &index); // Check if the Clients Exists
+    check = getClientId(clients, &id, &index, "Client ID"); // Get Client Id and Check if it Exists
 
-    if (clientStatus != clientFound)
-      checkClientStatus(clientStatus);
-
-    if (clientStatus == clientNotFound)
-      break;
-    else if (clientStatus == clientSuspended)
-    { // The Client Cannot Deposit Any Money while his Account is Suspended
+    if (check == clientSuspended) // The Client Cannot Deposit Any Money while his Account is Suspended
       suspended = true;
+
+    if (check != clientFound)
+    {
+      checkClientStatus(check);
       break;
     }
 
     cout << '\n';
     printClientInfo((*clients).getClient(index), true); // Print Client Info
     cout << '\n';
+
     if (booleanQuestion("Is this your Client Account?"))
       break;
   }
 
-  if (clientStatus != clientNotFound && !suspended)
+  if (check != clientNotFound && !suspended)
   { // Check if the Client isn't Suspended
     amount = getFloat("Enter the Amount to Deposit", minDeposit, maxDeposit);
+
     if (clientActionConfirm(clientDeposit)) // Asks the Client for Confirmation
     {
       message = "You Have Successfully Deposited $";
       message.append(toStringWithPrecision(amount, precision));
 
-      storeBalance(clientDeposit, id, (*clients).getClient(index).account, amount);
+      time = getCurrentTime();
+
+      storeMovement(time, clientDeposit, clients, index, amount); // Save Deposit
+
       pressEnterToCont(message, false);
     }
   }
@@ -272,10 +375,11 @@ void depositMoney(Clients *clients)
 void cashoutMoney(Clients *clients)
 {
   bool suspended;
+  clientStatus check;
+  Client client;
   int id, index;
   float amount;
-  string message;
-  clientStatus clientStatus;
+  string time, message;
 
   cout << clear; // Clear Terminal
   printTitle("Cash Out Money", applyBgColor, applyFgColor, false);
@@ -283,36 +387,40 @@ void cashoutMoney(Clients *clients)
 
   while (true)
   {
-    id = getClientId("Client ID");
-    clientStatus = checkClient(clients, id, fieldId, &index); // Check if the Clients Exists
+    check = getClientId(clients, &id, &index, "Client ID"); // Get Client Id and Check if it Exists
 
-    if (clientStatus != clientFound)
-      checkClientStatus(clientStatus);
-
-    if (clientStatus == clientNotFound)
-      break;
-    else if (clientStatus == clientSuspended)
-    { // The Client Cannot Deposit Any Money while his Account is Suspended
+    if (check == clientSuspended) // The Client Cannot Deposit Any Money while his Account is Suspended
       suspended = true;
+
+    if (check != clientFound)
+    {
+      checkClientStatus(check);
       break;
     }
 
     cout << '\n';
     printClientInfo((*clients).getClient(index), true); // Print Client Info
     cout << '\n';
+
     if (booleanQuestion("Is this your Client Account?"))
       break;
   }
 
-  if (clientStatus != clientNotFound && !suspended)
+  if (check != clientNotFound && !suspended)
   { // Check if the Client isn't Suspended
     amount = getFloat("Enter the Amount to Cash Out", minDeposit, maxDeposit);
-    if (clientActionConfirm(clientCashout)) // Asks the Client for Confirmation
+
+    if ((*clients).getClient(index).balance < amount)
+      pressEnterToCont("Insufficient Funds", true);
+    else if (clientActionConfirm(clientCashout)) // Asks the Client for Confirmation
     {
       message = "You Have Successfully Cashed Out $";
       message.append(toStringWithPrecision(amount, precision));
 
-      storeBalance(clientCashout, id, (*clients).getClient(index).account, amount);
+      time = getCurrentTime();
+
+      storeMovement(time, clientCashout, clients, index, amount); // Save Cash Out
+
       pressEnterToCont(message, false);
     }
   }
@@ -322,10 +430,11 @@ void cashoutMoney(Clients *clients)
 void sendMoney(Clients *clients)
 {
   bool suspended;
-  int idFrom, idTo, indexFrom, indexTo;
+  clientStatus check;
+  Client client;
   float amount;
-  string message;
-  clientStatus clientStatus;
+  int idFrom, idTo, indexFrom, indexTo;
+  string time, message;
 
   cout << clear; // Clear Terminal
   printTitle("Send Money", applyBgColor, applyFgColor, false);
@@ -333,36 +442,38 @@ void sendMoney(Clients *clients)
 
   while (true)
   {
-    idFrom = getClientId("Client ID");
-    clientStatus = checkClient(clients, idFrom, fieldId, &indexFrom); // Check if the Clients Exists
+    check = getClientId(clients, &idFrom, &indexFrom, "Client ID"); // Get Client Id and Check if it Exists
 
-    if (clientStatus != clientFound)
-      checkClientStatus(clientStatus);
-
-    if (clientStatus == clientNotFound)
-      break;
-    else if (clientStatus == clientSuspended)
-    { // The Client Cannot Deposit Any Money while his Account is Suspended
+    if (check == clientSuspended) // The Client Cannot Deposit Any Money while his Account is Suspended
       suspended = true;
+
+    if (check != clientFound)
+    {
+      checkClientStatus(check);
       break;
     }
 
     cout << '\n';
     printClientInfo((*clients).getClient(indexFrom), true); // Print Client Info
     cout << '\n';
+
     if (booleanQuestion("Is this your Client Account?"))
       break;
   }
 
-  if (clientStatus != clientNotFound && !suspended)
+  if (check != clientNotFound && !suspended)
   { // Check if the Client isn't Suspended
     while (true)
     {
-      idTo = getClientId("Send to Client Id");
-      clientStatus = checkClient(clients, idTo, fieldId, &indexTo); // Check if the Clients Exists
+      check = getClientId(clients, &idTo, &indexTo, "Send to Client ID"); // Get Client Id and Check if it Exists
 
-      if (idFrom == idTo)
-      { // Client Cannot Send to Himself
+      if (check == clientNotFound)
+      {
+        checkClientStatus(check);
+        break;
+      }
+      else if (idFrom == idTo) // Client Cannot Send to Himself
+      {
         pressEnterToCont("Error: You Cannot Send to Yourself", false);
         continue;
       }
@@ -370,19 +481,30 @@ void sendMoney(Clients *clients)
       cout << '\n';
       printClientInfo((*clients).getClient(indexTo), true); // Print Client Info
       cout << '\n';
+
       if (booleanQuestion("Is this the Account you Want to Send the Money to?"))
         break;
     }
 
-    amount = getFloat("Enter the Amount to Send", minDeposit, maxDeposit);
-    if (clientActionConfirm(clientSend)) // Asks the Client for Confirmation
+    if (check != clientNotFound)
     {
-      message = "You Have Successfully Sent $";
-      message.append(toStringWithPrecision(amount, precision));
+      amount = getFloat("Enter the Amount to Send", minDeposit, maxDeposit);
 
-      storeTransactions(idFrom, (*clients).getClient(indexFrom).account, amount, idTo);
-      storeBalance(clientSend, idFrom, (*clients).getClient(indexFrom).account, amount);
-      pressEnterToCont(message, false);
+      client = (*clients).getClient(indexFrom); // Get Client
+      if (client.balance < amount)
+        pressEnterToCont("Insufficient Funds", true);
+      else if (clientActionConfirm(clientSend)) // Asks the Client for Confirmation
+      {
+        message = "You Have Successfully Sent $";
+        message.append(toStringWithPrecision(amount, precision));
+
+        time = getCurrentTime();
+
+        storeTransactions(time, idFrom, client.account, amount, idTo);        // Store Transaction
+        storeMovement(time, clientSend, clients, indexFrom, amount, indexTo); // Update Balances
+
+        pressEnterToCont(message, false);
+      }
     }
   }
 }
@@ -400,8 +522,7 @@ void changeStatus(Clients *clients)
   printTitle("Change Account Status", applyBgColor, applyFgColor, false); // Examples of the Usage of the Search Command
   cout << '\n';
 
-  id = getClientId("Client ID to Change Status");
-  clientStatus = checkClient(clients, id, fieldId, &index); // Check if the Clients Exists
+  clientStatus = getClientId(clients, &id, &index, "Client ID to Change Status"); // Get Client Id and Check if it Exists
 
   if (clientStatus == clientNotFound)
     checkClientStatus(clientStatus);
@@ -420,23 +541,7 @@ void changeStatus(Clients *clients)
       message = "Client Found: Changed Status";
       (*clients).changeClientStatus(index);
 
-      ofstream outfile(clientsFilename);
-
-      Client client;
-      string suspended;
-
-      for (int i = 0; i < (*clients).getNumberClients(); i++) // Write to File
-      {
-        client = (*clients).getClient(i);
-
-        suspended = (client.suspended) ? "true" : "false"; // Get Account Status
-
-        outfile << client.id << sep << client.name << sep
-                << setw(maxAccountDigits) << setfill('0') << right << fixed << setprecision(0) << client.account << left
-                << sep << accountStr[client.type] << sep << suspended << '\n';
-      }
-
-      outfile.close(); // Close file
+      overwriteClients(clients); // Overwrite clients.csv
     }
     printClientInfo((*clients).getClient(index), true);
     pressEnterToCont(message, false);

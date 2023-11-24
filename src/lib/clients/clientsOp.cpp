@@ -21,30 +21,34 @@ extern char *accountStr[];
 
 // --- Functions Prototypes
 void getClients(Clients *clients);
+void overwriteClients(Clients *clients);
+void overwriteBalance(Clients *clients);
 void filterClients(Clients *clients, string **params, bool fields[], int sortBy[]);
 void addClientToFile(Clients *clients);
 void sortClients(Clients *clients, int sortBy[], int n);
 void clientsMergeSort(Clients *clients, int sortByIndex);
 void clientsMerge(Clients *clients, Client sorted[], int low, int mid, int high, int sortByIndex);
-int getClientId(string message);
+clientStatus getClientId(Clients *clients, int *id, int *index, string message);
 
 // --- Functions
 
 // Function to Get an Array of Clients from clients.csv
 void getClients(Clients *clients)
 {
-  int count = 0;
+  Client client;
+  int id, nClients, clientCounter, count = 0;
+  float balance;
   string line, word;
 
-  ifstream infile(clientsFilename);
+  ifstream clientsCSV(clientsFilename);
 
-  if (!infile.is_open())
-  { // Couldn't Access to infile
-    infile.close();
+  if (!clientsCSV.is_open())
+  { // Couldn't Access to clientsCSV
+    clientsCSV.close();
     pressEnterToCont("Error: File Not Found. Press ENTER to go Back to Main Menu", true);
   }
 
-  while (getline(infile, line))
+  while (getline(clientsCSV, line)) // Get Clients
     try
     {
       if (line.length() == 0)
@@ -88,9 +92,92 @@ void getClients(Clients *clients)
     {
       // It will Ignore the Line that was Read from clients.csv
     }
+  clientsCSV.close();
+
+  ifstream balanceCSV(balanceFilename);
+  clientsMergeSort(clients, sortByIdA); // Sort Clients by Id
+
+  clientCounter = 0;
+  nClients = (*clients).getNumberClients();
+  while (getline(balanceCSV, line)) // Get Clients Balance
+    try
+    {
+      if (line.length() == 0)
+        continue;
+
+      stringstream file(line);
+
+      count = 0;
+      while (getline(file, word, sep))
+      {
+        if (word.length() != 0)
+          switch (count)
+          {
+          case 0:
+            id = stoi(word);
+            break;
+          case 1:
+            balance = stof(word);
+            break;
+          }
+        count++;
+      }
+
+      for (; clientCounter < nClients; clientCounter++)
+      {
+        client = (*clients).getClient(clientCounter); // Get Client
+
+        if (client.id == id)
+          (*clients).updateBalance(clientCounter, balance); // Update Client Balance
+        else
+          continue; // To Prevent Wrong Client Balance Assignment if balance.csv was Manipulated
+
+        break;
+      }
+    }
+    catch (...)
+    {
+      // It will Ignore the Line that was Read from clients.csv
+    }
+
+  balanceCSV.close();
+}
+
+// Function to Overwite clients.csv
+void overwriteClients(Clients *clients)
+{
+  Client client;
+  string suspended;
+
+  ofstream clientsCSV(clientsFilename);
+
+  clientsCSV << "ci, client, account_number, account_type, suspend\n"; // Overwrite Header
+  for (int i = 0; i < (*clients).getNumberClients(); i++)
+  {
+    client = (*clients).getClient(i); // Get Client
+    suspended = (client.suspended) ? "true" : "false";
+
+    clientsCSV << client.id << sep
+               << client.name << sep
+               << setw(maxAccountDigits) << setfill('0') << fixed << setprecision(0) << client.account << sep
+               << accountStr[client.type] << sep
+               << suspended << '\n';
+  }
+}
+
+// Function to Store Updates of Clients Balance
+void overwriteBalance(Clients *clients)
+{
+  Client client;
+
+  ofstream balanceCSV(balanceFilename);
 
   clientsMergeSort(clients, sortByIdA); // Sort Clients by Id
-  infile.close();
+  for (int i = 0; i < (*clients).getNumberClients(); i++)
+  {
+    client = (*clients).getClient(i); // Get Client
+    balanceCSV << client.id << sep << fixed << setprecision(2) << client.balance << '\n';
+  }
 }
 
 // Function that Returns Clients Indexes that Matched with the Parameters
@@ -163,33 +250,20 @@ void addClientToFile(Clients *clients)
 {
   Client newClient = Client();
 
-  int iter, check, index;
+  int iter, check, id, index;
   string temp, date, accountType;
 
   newClient.suspended = true; // New Clients will have to wait for an Admin to Remove their Suspension
   string suspended = (newClient.suspended) ? "true" : "false";
 
-  while (true) // Get Client ID
-    try
-    {
-      cout << "ID: ";
-      getline(cin, temp);
-      newClient.id = stoi(temp);
-
-      check = checkClient(clients, newClient.id, fieldId, &index);
-      if (newClient.id <= 0)
-        throw(-1); // ID Must be in the Range 0<ID<n
-      break;
-    }
-    catch (...)
-    {
-      wrongClientData(invalidClientId);
-    }
+  check = getClientId(clients, &id, &index, "ID"); // Get Client Id
 
   if (check != clientNotFound) // The Id has been Added to that File
     wrongClientData(clientExists);
   else
   {
+    newClient.id = id; // Assign Client Id
+
     cout << "Name: "; // Get Client Name
     getline(cin, newClient.name);
 
@@ -217,12 +291,14 @@ void addClientToFile(Clients *clients)
 
     (*clients).pushBack(newClient); // Added the Client Right After the Last One, and Increase the Counter of Occupied Indexes
 
-    ofstream outfile(clientsFilename, ios::app); // Write to File
-    outfile << newClient.id << sep << newClient.name << sep
-            << setw(maxAccountDigits) << setfill('0') << right << fixed << setprecision(0) << newClient.account << left
-            << sep << accountType << sep << suspended << '\n';
+    ofstream clientsCSV(clientsFilename, ios::app); // Write to File
+    clientsCSV << newClient.id << sep << newClient.name << sep
+               << setw(maxAccountDigits) << setfill('0') << right << fixed << setprecision(0) << newClient.account << left
+               << sep << accountType << sep << suspended << '\n';
 
-    outfile.close();
+    clientsCSV.close();
+
+    overwriteBalance(clients);
 
     pressEnterToCont("Client Added Successfully!", false);
   }
@@ -315,16 +391,21 @@ void clientsMerge(Clients *clients, Client sorted[], int low, int mid, int high,
 }
 
 // Function to Ask for Client Id
-int getClientId(string message)
+clientStatus getClientId(Clients *clients, int *id, int *index, string message)
 {
   string temp;
 
-  while (true)
-    try // Get Client ID
+  while (true) // Get Client ID
+    try
     {
       cout << message << ": ";
       getline(cin, temp);
-      return stoi(temp);
+      *id = stoi(temp);
+
+      if (*id <= 0)
+        throw(-1); // ID Must be in the Range 0<ID<n
+
+      return checkClient(clients, *id, fieldId, index);
     }
     catch (...)
     {

@@ -10,11 +10,13 @@ using namespace clients;
 
 // --- Functions
 void getClients(Clients *clients);
+void overwriteClients(Clients *clients);
+void overwriteBalance(Clients *clients);
 void filterClients(Clients *clients, string **params, bool fields[], int sortBy[]);
 void addClientToFile(Clients *clients);
 void sortClients(Clients *clients, int sortBy[], int n);
 void clientsMergeSort(Clients *clients, int sortByIndex);
-int getClientId(string message);
+clientStatus getClientId(Clients *clients, int *id, int *index, string message);
 
 // --- Templates
 

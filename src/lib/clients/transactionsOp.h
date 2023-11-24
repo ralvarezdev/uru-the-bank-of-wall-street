@@ -9,7 +9,8 @@ extern string *actionsPtr;
 #define TRANSACTIONS_H
 
 // --- Functions
-void storeBalance(clientActions action, int clientId, double account, float amount);
-void storeTransactions(int clientIdFrom, double accountFrom, float amount, int clientIdTo);
+void storeMovement(string time, clientActions action, Clients *clients, int indexFrom, float amount, int indexTo = -1);
+void storeTransactions(string time, int clientIdFrom, double accountFrom, float amount, int clientIdTo);
+string getCurrentTime();
 
 #endif

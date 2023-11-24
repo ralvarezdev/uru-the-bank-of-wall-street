@@ -130,7 +130,7 @@ void checkClientStatus(clientStatus clientStatus)
 }
 
 // Function to Stop the Program Flow while the User doesn't press the ENTER key
-void pressEnterToCont(string message, bool warning = false)
+void pressEnterToCont(string message, bool warning)
 {
   string temp;
 
@@ -147,13 +147,18 @@ float getFloat(string message, float low, float high)
   while (true)
     try // Get Floats
     {
-      cout << message << " [" << fixed << setprecision(precision) << low << '-' << high << "]: ";
+      cout << message << " : ";
       getline(cin, temp);
-      return stoi(temp);
+      return stof(temp);
     }
     catch (...)
     {
-      pressEnterToCont("The Number is Out of that Range", true);
+      ostringstream stream;
+
+      stream << "The Number is Out of that Range"
+             << " [" << fixed << setprecision(precision) << low << '-' << high << "]";
+
+      pressEnterToCont(stream.str(), true);
     }
 }
 

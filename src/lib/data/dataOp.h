@@ -9,6 +9,21 @@ using namespace clients;
 #ifndef DATA_H
 #define DATA_H
 
+// --- Functions
+int isCharOnArray(int character, int array[], int n);
+void addClients(Clients *clients);
+void removeClient(Client *clients);
+void viewClients(Clients *clients, bool fields[], int sortBy[]);
+void filterClients(Clients *clients, string **params, int sortBy[]);
+void fields(); // As a Parameter or as a Subcommand
+void sortByParameters();
+void howToUseViewClients();
+void howToUseFilterClients();
+void depositMoney(Clients *clients);
+void cashoutMoney(Clients *clients);
+void sendMoney(Clients *clients);
+void changeStatus(Clients *clients);
+
 // --- Templates
 
 // Template to Return a String that's Surrounded by Brackets
@@ -26,19 +41,5 @@ string addBrackets(T message)
 
   return addedBrackets.insert(addedBrackets.length(), 1, ']');
 }
-
-// --- Functions
-int isCharOnArray(int character, int array[], int n);
-void addClients(Clients *clients);
-void viewClients(Clients *clients, bool fields[], int sortBy[]);
-void filterClients(Clients *clients, string **params, int sortBy[]);
-void fields(); // As a Parameter or as a Subcommand
-void sortByParameters();
-void howToUseViewClients();
-void howToUseFilterClients();
-void depositMoney(Clients *clients);
-void cashoutMoney(Clients *clients);
-void sendMoney(Clients *clients);
-void changeStatus(Clients *clients);
 
 #endif

@@ -170,6 +170,11 @@ namespace clients
         this->array[index].suspended = !this->array[index].suspended; // Change Status of Client
     }
 
+    void updateBalance(int index, float balance)
+    { // Update Client Balance
+      this->array[index].balance = balance;
+    }
+
     void pushBack(Client newClient)
     {
       if (this->occupied == this->capacity)
@@ -262,7 +267,8 @@ namespace clients
   const int precision = 2;                                // Precision for Floats and Doubles
   const string clientsFilename = "clients.csv";           // Clients Filename
   const string transactionsFilename = "transactions.csv"; // Transactions Filename (STORES TRANSACTIONS BETWEEN CLIENTS)
-  const string balancesFilename = "balances.csv";         // Clients Movements Filename (STORES DEPOSITS, CASHOUTS AND TRANSACTIONS)
+  const string movementsFilename = "movements.csv";       // Clients Movements Filename (STORES DEPOSITS, CASHOUTS AND TRANSACTIONS)
+  const string balanceFilename = "balance.csv";           // Clients Balance Filename
   const int maxAccountDigits = 10;                        // Maximum Number of Digits for Account Number
   const float minDeposit = 0;                             // Minimum Amount to Deposit
   const float maxDeposit = 1000000;                       // Maximum Amount to Deposit
@@ -346,6 +352,13 @@ namespace commands
     int sub = 0;
     int field = 0;
     int param = 0;
+  };
+
+  // - Command Explanation
+  struct cmdExplanation
+  {
+    string cmd;
+    string explanation;
   };
 }
 

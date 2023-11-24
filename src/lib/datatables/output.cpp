@@ -14,6 +14,7 @@ extern bool validFieldsToFilter[];
 extern char *fieldCmdsStr[], *accountStr[];
 
 // --- Function Prototypes
+void printExamples(cmdExplanation examples[], int n);
 void printClientInfo(Client client, bool censoreInfo);
 void printArray(string *params, int m, string paramTitle);
 void print2DArray(string **params, int m, int n, char **paramsTitle);
@@ -21,8 +22,8 @@ void printClients(Clients *clients, bool *fields);
 
 // --- Functions For Output Styling
 
-// Function to Print the Commands and its Explanations while Taking Care of nChar
-void printExamples(string cmds[], string explanations[], int n)
+// Function to Print the Command Examples and its Explanations while Taking Care of nChar
+void printExamples(cmdExplanation examples[], int n)
 {
   const int nCharLine = nChar - tab1.length(); // Number of Characters for Each Line
 
@@ -35,16 +36,16 @@ void printExamples(string cmds[], string explanations[], int n)
   {
     printedChar = 0;
 
-    for (int j = 0; j < cmds[i].length(); j += nCharLine)
+    for (int j = 0; j < examples[i].cmd.length(); j += nCharLine)
     {
-      message = cmds[i].substr(j, nCharLine + j);
+      message = examples[i].cmd.substr(j, nCharLine + j);
       cout << '\n'
            << tab1 << message << '\n';
     }
 
     cout << tab1 << string(nCharTitle, '-') << '\n';
 
-    stringstream stream(explanations[i]); // To Print the Message with New Line each time it Reaches nCharLine
+    stringstream stream(examples[i].explanation); // To Print the Message with New Line each time it Reaches nCharLine
 
     while (getline(stream, message, ' '))
     {
