@@ -346,11 +346,14 @@ int main(int argc, char **argv)
 
     switch (index.main)
     {
+    case cmdGetBalance:
+      getBalance(&clients);
+      break;
     case cmdAddClient:
       addClients(&clients);
       break;
     case cmdRemoveClient:
-      // removeClient(&clients);
+      removeClient(&clients);
       break;
     case cmdChangeStatus:
       changeStatus(&clients);
@@ -399,6 +402,7 @@ void helpMessage()
        << tab1 << addBrackets(cmdsChar[cmdViewClients]) << " View Clients\n"
        << tab1 << addBrackets(cmdsChar[cmdFilterClients]) << " Filter Clients\n"
        << "Client Commands:\n"
+       << tab1 << addBrackets(cmdsChar[cmdGetBalance]) << " Get Balance\n"
        << tab1 << addBrackets(cmdsChar[cmdDepositMoney]) << " Deposit Money\n"
        << tab1 << addBrackets(cmdsChar[cmdCashoutMoney]) << " Cashout Money\n"
        << tab1 << addBrackets(cmdsChar[cmdSendMoney]) << " Send Money\n"
@@ -450,6 +454,7 @@ int cmdsChar[cmdEnd] = { // Commands Character
     [cmdAddClient] = 'a',
     [cmdRemoveClient] = 'r',
     [cmdChangeStatus] = 'C',
+    [cmdGetBalance] = 'g',
     [cmdDepositMoney] = 'd',
     [cmdCashoutMoney] = 'c',
     [cmdSendMoney] = 's',

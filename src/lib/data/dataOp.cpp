@@ -25,7 +25,7 @@ extern char *fieldCmdsStr[], *accountStr[];
 // --- Function Prototypes
 int isCharOnArray(int character, int array[], int n);
 void addClients(Clients *clients);
-void removeClient(Client *clients);
+void removeClient(Clients *clients);
 void viewClients(Clients *clients, bool fields[], int sortBy[]);
 void filterClients(Clients *clients, string **params, int sortBy[]);
 void validParameters(int nCharTitle);
@@ -33,6 +33,7 @@ void fields();
 void sortByParameters();
 void howToUseViewClients();
 void howToUseFilterClients();
+void getBalance(Clients *clients);
 void depositMoney(Clients *clients);
 void cashoutMoney(Clients *clients);
 void sendMoney(Clients *clients);
@@ -70,101 +71,38 @@ void addClients(Clients *clients)
 // Function to Remove Client from clients.csv
 void removeClient(Clients *clients)
 {
-  /*
+  bool deleteClient;
   clientStatus check;
   int id, index;
   string temp;
 
-  while (true) // Get Client ID
-    try
-    {
-      cout << "ID: ";
-      getline(cin, temp);
-      id = stoi(temp);
+  cout << clear;
+  printTitle("Remove Client", applyBgColor, applyFgColor, false);
 
-      if (id <= 0)
-        throw(-1); // ID Must be in the Range 0<ID<n
+  cout << '\n';
+  check = getClientId(clients, &id, &index, "ID");
 
-      check = checkClient(clients, id, fieldId, &index);
-      break;
-    }
-    catch (...)
-    {
-      wrongClientData(invalidClientId);
-    }
-
-  if (check != clientNotFound) // The Id has been Added to that File
-    wrongClientData(clientExists);
-
-  void eliminarUsuario(const std::string &archivoCSV, const std::string &ci)
+  if (check == clientNotFound) // The Id hasn't been Added to that File
+    checkClientStatus(check);
+  else
   {
-    std::ifstream file(archivoCSV);
-    std::ofstream outfile("temp.csv");
-    Usuario usuario;
 
-    if (file.is_open() && outfile.is_open())
+    printClientInfo((*clients).getClient(index), true); // Print Client Info
+
+    if (booleanQuestion("Is this the Client Account you want to Delete?"))
+      if (booleanQuestion("Are you 100% Sure?"))
+        deleteClient = true;
+
+    if (deleteClient)
     {
-      std::string line;
-      while (std::getline(file, line))
-      {
-        std::stringstream ss(line);
-        std::string token;
+      (*clients).deleteAt(index);       // Delete Client
+      deleteClientHistory(clients, id); // Delete Client Transaction and Movements History
+      overwriteBalance(clients);        // OverWrite Balance
+      overwriteClients(clients);        // Overwrite Clients
 
-        std::getline(ss, token, ',');
-        usuario.ci = token;
-        std::getline(ss, token, ',');
-        usuario.nombre = token;
-        std::getline(ss, token, ',');
-        usuario.numeroCuenta = token;
-        std::getline(ss, token, ',');
-        usuario.tipoCuenta = token;
-        std::getline(ss, token, ',');
-        usuario.cuentaSuspendida = (token == "true");
-
-        if (usuario.ci != ci)
-        {
-          outfile << usuario.ci << "," << usuario.nombre << "," << usuario.numeroCuenta << "," << usuario.tipoCuenta << "," << (usuario.cuentaSuspendida ? "true" : "false") << std::endl;
-        }
-      }
-
-      file.close();
-      outfile.close();
-
-      if (std::remove(archivoCSV.c_str()) == 0)
-      {
-        if (std::rename("temp.csv", archivoCSV.c_str()) == 0)
-        {
-          std::cout << "Usuario eliminado correctamente." << std::endl;
-        }
-        else
-        {
-          std::cout << "Error al renombrar el archivo temporal." << std::endl;
-        }
-      }
-      else
-      {
-        std::cout << "Error al eliminar el archivo original." << std::endl;
-      }
-    }
-    else
-    {
-      std::cout << "Error al abrir el archivo." << std::endl;
+      pressEnterToCont("Client Deleted", true);
     }
   }
-
-  int main()
-  {
-    std::string archivoCSV = "clients.csv";
-    std::string ci;
-
-    std::cout << "Ingrese la cédula del usuario que desea eliminar: ";
-    std::cin >> ci;
-
-    eliminarUsuario(archivoCSV, ci);
-    system("pause");
-    return 0;
-  }
-  */
 }
 
 // Function to View Clients Stored in clients.csv
@@ -345,9 +283,7 @@ void depositMoney(Clients *clients)
       break;
     }
 
-    cout << '\n';
     printClientInfo((*clients).getClient(index), true); // Print Client Info
-    cout << '\n';
 
     if (booleanQuestion("Is this your Client Account?"))
       break;
@@ -369,6 +305,41 @@ void depositMoney(Clients *clients)
       pressEnterToCont(message, false);
     }
   }
+}
+
+// Function to Get Client Balance
+void getBalance(Clients *clients)
+{
+  clientStatus check;
+  Client client;
+  int id, index;
+  string message;
+
+  cout << clear; // Clear Terminal
+  printTitle("Client Balance", applyBgColor, applyFgColor, false);
+  cout << '\n';
+
+  while (true)
+  {
+    check = getClientId(clients, &id, &index, "Client ID"); // Get Client Id and Check if it Exists
+
+    if (check != clientFound)
+    {
+      checkClientStatus(check);
+      break;
+    }
+
+    client = (*clients).getClient(index); // Get Client
+    printClientInfo(client, true);        // Print Client Info
+
+    if (booleanQuestion("Is this your Client Account?"))
+      break;
+  }
+
+  ostringstream stream;
+
+  stream << "Balance: $" << client.balance;
+  pressEnterToCont(stream.str(), (client.balance < warningBalance) ? true : false);
 }
 
 // Function for Clients to Cashout Money from their Accounts
@@ -398,16 +369,16 @@ void cashoutMoney(Clients *clients)
       break;
     }
 
-    cout << '\n';
-    printClientInfo((*clients).getClient(index), true); // Print Client Info
-    cout << '\n';
+    client = (*clients).getClient(index); // Get Client
+    printClientInfo(client, true);        // Print Client Info
 
     if (booleanQuestion("Is this your Client Account?"))
       break;
   }
 
   if (check != clientNotFound && !suspended)
-  { // Check if the Client isn't Suspended
+  {                             // Check if the Client isn't Suspended
+    printClientBalance(client); // Print Client Balance
     amount = getFloat("Enter the Amount to Cash Out", minDeposit, maxDeposit);
 
     if ((*clients).getClient(index).balance < amount)
@@ -431,7 +402,7 @@ void sendMoney(Clients *clients)
 {
   bool suspended;
   clientStatus check;
-  Client client;
+  Client clientFrom;
   float amount;
   int idFrom, idTo, indexFrom, indexTo;
   string time, message;
@@ -453,9 +424,8 @@ void sendMoney(Clients *clients)
       break;
     }
 
-    cout << '\n';
-    printClientInfo((*clients).getClient(indexFrom), true); // Print Client Info
-    cout << '\n';
+    clientFrom = (*clients).getClient(indexFrom); // Get Client
+    printClientInfo(clientFrom, true);            // Print Client Info
 
     if (booleanQuestion("Is this your Client Account?"))
       break;
@@ -478,9 +448,7 @@ void sendMoney(Clients *clients)
         continue;
       }
 
-      cout << '\n';
       printClientInfo((*clients).getClient(indexTo), true); // Print Client Info
-      cout << '\n';
 
       if (booleanQuestion("Is this the Account you Want to Send the Money to?"))
         break;
@@ -488,10 +456,10 @@ void sendMoney(Clients *clients)
 
     if (check != clientNotFound)
     {
+      printClientBalance(clientFrom); // Print Client Balance
       amount = getFloat("Enter the Amount to Send", minDeposit, maxDeposit);
 
-      client = (*clients).getClient(indexFrom); // Get Client
-      if (client.balance < amount)
+      if (clientFrom.balance < amount)
         pressEnterToCont("Insufficient Funds", true);
       else if (clientActionConfirm(clientSend)) // Asks the Client for Confirmation
       {
@@ -500,7 +468,7 @@ void sendMoney(Clients *clients)
 
         time = getCurrentTime();
 
-        storeTransactions(time, idFrom, client.account, amount, idTo);        // Store Transaction
+        storeTransactions(time, idFrom, clientFrom.account, amount, idTo);    // Store Transaction
         storeMovement(time, clientSend, clients, indexFrom, amount, indexTo); // Update Balances
 
         pressEnterToCont(message, false);
@@ -534,6 +502,7 @@ void changeStatus(Clients *clients)
       change = booleanQuestion("Do you want to Suspend the Client?");
     cout << '\n';
 
+    printClientInfo((*clients).getClient(index), true);
     if (!change)
       message = "Client Found: Nothing to Change";
     else
@@ -543,7 +512,6 @@ void changeStatus(Clients *clients)
 
       overwriteClients(clients); // Overwrite clients.csv
     }
-    printClientInfo((*clients).getClient(index), true);
     pressEnterToCont(message, false);
   }
 }

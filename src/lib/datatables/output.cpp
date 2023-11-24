@@ -16,6 +16,7 @@ extern char *fieldCmdsStr[], *accountStr[];
 // --- Function Prototypes
 void printExamples(cmdExplanation examples[], int n);
 void printClientInfo(Client client, bool censoreInfo);
+void printClientBalance(Client client);
 void printArray(string *params, int m, string paramTitle);
 void print2DArray(string **params, int m, int n, char **paramsTitle);
 void printClients(Clients *clients, bool *fields);
@@ -116,6 +117,7 @@ void printClientInfo(Client client, bool censoreInfo)
   string accountType = accountStr[client.type];                   // Get Client Type
   string suspended = (client.suspended) ? "Suspended" : "Active"; // Get Client Status
 
+  cout << '\n';
   printTitle("Client Info", applyBgColor, applyFgColor, false);
 
   cout << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldId] << client.id << '\n'; // Print Client Id
@@ -135,6 +137,13 @@ void printClientInfo(Client client, bool censoreInfo)
     cout << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountNumber]
          << string(nAccountCensored, 'X') << getLastDigits(client.account, maxAccountDigits - nAccountCensored) << '\n' // Print Client Account Number
          << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldAccountType] << accountType << '\n';                  // Print Client Account Type
+  cout << '\n';
+}
+
+// Function to Print Client Balance
+void printClientBalance(Client client)
+{
+  cout << "Balance: $" << client.balance << '\n';
 }
 
 // Function to Print Clients

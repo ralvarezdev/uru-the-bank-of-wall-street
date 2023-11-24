@@ -137,9 +137,8 @@ void getClients(Clients *clients)
     }
     catch (...)
     {
-      // It will Ignore the Line that was Read from clients.csv
+      // It will Ignore the Line that was Read from balance.csv
     }
-
   balanceCSV.close();
 }
 
@@ -149,20 +148,24 @@ void overwriteClients(Clients *clients)
   Client client;
   string suspended;
 
+  ostringstream content;
   ofstream clientsCSV(clientsFilename);
 
-  clientsCSV << "ci, client, account_number, account_type, suspend\n"; // Overwrite Header
+  content << "ci, client, account_number, account_type, suspend\n"; // Overwrite Header
   for (int i = 0; i < (*clients).getNumberClients(); i++)
   {
     client = (*clients).getClient(i); // Get Client
     suspended = (client.suspended) ? "true" : "false";
 
-    clientsCSV << client.id << sep
-               << client.name << sep
-               << setw(maxAccountDigits) << setfill('0') << fixed << setprecision(0) << client.account << sep
-               << accountStr[client.type] << sep
-               << suspended << '\n';
+    content << client.id << sep
+            << client.name << sep
+            << setw(maxAccountDigits) << setfill('0') << fixed << setprecision(0) << client.account << sep
+            << accountStr[client.type] << sep
+            << suspended << '\n';
   }
+
+  clientsCSV << content.str(); // Write Content to clients.csv
+  clientsCSV.close();
 }
 
 // Function to Store Updates of Clients Balance
@@ -170,14 +173,17 @@ void overwriteBalance(Clients *clients)
 {
   Client client;
 
+  ostringstream content;
   ofstream balanceCSV(balanceFilename);
 
   clientsMergeSort(clients, sortByIdA); // Sort Clients by Id
   for (int i = 0; i < (*clients).getNumberClients(); i++)
   {
     client = (*clients).getClient(i); // Get Client
-    balanceCSV << client.id << sep << fixed << setprecision(2) << client.balance << '\n';
+    content << client.id << sep << fixed << setprecision(2) << client.balance << '\n';
   }
+  balanceCSV << content.str(); // Write Content to balance.csv
+  balanceCSV.close();
 }
 
 // Function that Returns Clients Indexes that Matched with the Parameters

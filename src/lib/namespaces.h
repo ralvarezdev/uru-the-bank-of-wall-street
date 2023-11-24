@@ -115,16 +115,6 @@ namespace clients
     clientEnd // To get the number of Client Actions. SHOULD BE AT THE END
   };
 
-  /*
-    // - Transaction Status
-    enum transactionStatus
-    {
-      invalidAmount,
-      transactionSuccessful,
-      transactionEnd
-    }; // To get the number of Transaction Statuses. SHOULD BE AT THE END
-  */
-
   // - Client Structure
   struct Client
   {
@@ -269,7 +259,9 @@ namespace clients
   const string transactionsFilename = "transactions.csv"; // Transactions Filename (STORES TRANSACTIONS BETWEEN CLIENTS)
   const string movementsFilename = "movements.csv";       // Clients Movements Filename (STORES DEPOSITS, CASHOUTS AND TRANSACTIONS)
   const string balanceFilename = "balance.csv";           // Clients Balance Filename
+  const string deletedClient = "del";                     // Stirng that will Substitute Id of Deleted Clients
   const int maxAccountDigits = 10;                        // Maximum Number of Digits for Account Number
+  const int warningBalance = 1000;                        // Client Balance will be Printed with the Warning Text Format
   const float minDeposit = 0;                             // Minimum Amount to Deposit
   const float maxDeposit = 1000000;                       // Maximum Amount to Deposit
 }
@@ -283,6 +275,7 @@ namespace commands
     cmdAddClient,
     cmdRemoveClient,
     cmdChangeStatus,
+    cmdGetBalance,
     cmdDepositMoney,
     cmdCashoutMoney,
     cmdSendMoney,
