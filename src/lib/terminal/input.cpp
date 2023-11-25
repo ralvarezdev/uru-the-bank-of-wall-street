@@ -3,6 +3,9 @@
 #include "ansiEsc.h"
 #include "input.h"
 
+// #define NDEBUG
+#include <assert.h>
+
 #include "../namespaces.h"
 
 using namespace std;
@@ -56,6 +59,7 @@ bool booleanQuestion(string message)
     else
       wrongCommand(wrongBooleanAnswer);
   }
+  assert(c != 'y' && c != 'n'); // Function Must Not Get to this Assert
 }
 
 // Function to Check if the Command Entered by the User is Correct
@@ -143,13 +147,17 @@ void pressEnterToCont(string message, bool warning)
 float getFloat(string message, float low, float high)
 {
   string temp;
+  float amount;
 
   while (true)
     try // Get Floats
     {
       cout << message << " : ";
       getline(cin, temp);
-      return stof(temp);
+      amount = stof(temp);
+
+      if (amount > low && amount <= high)
+        return amount;
     }
     catch (...)
     {
@@ -160,6 +168,7 @@ float getFloat(string message, float low, float high)
 
       pressEnterToCont(stream.str(), true);
     }
+  assert(stof(temp) == -1); // Function Must Not Get to this Assert
 }
 
 // Function to Get a Lowercase String

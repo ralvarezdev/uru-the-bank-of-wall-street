@@ -4,6 +4,9 @@
 #include <fstream>
 #include <string>
 
+// #define NDEBUG
+#include <assert.h>
+
 #include "../namespaces.h"
 #include "../clients/clientsOp.h"
 #include "../clients/transactionsOp.h"
@@ -73,8 +76,7 @@ void removeClient(Clients *clients)
 {
   bool deleteClient;
   clientStatus check;
-  int id, index;
-  string temp;
+  int id, index = -1;
 
   cout << clear;
   printTitle("Remove Client", applyBgColor, applyFgColor, false);
@@ -82,26 +84,29 @@ void removeClient(Clients *clients)
   cout << '\n';
   check = getClientId(clients, &id, &index, "ID");
 
-  if (check == clientNotFound) // The Id hasn't been Added to that File
+  if (check == clientNotFound)
+  {                                 // The Id hasn't been Added to that File
+    assert(id >= 0 && index == -1); // Check Client Id and Index
     checkClientStatus(check);
+  }
   else
   {
-
+    assert(id >= 0 && index >= 0);                      // Check Client Id and Index
     printClientInfo((*clients).getClient(index), true); // Print Client Info
 
     if (booleanQuestion("Is this the Client Account you want to Delete?"))
       if (booleanQuestion("Are you 100% Sure?"))
         deleteClient = true;
+  }
 
-    if (deleteClient)
-    {
-      (*clients).deleteAt(index);       // Delete Client
-      deleteClientHistory(clients, id); // Delete Client Transaction and Movements History
-      overwriteBalance(clients);        // OverWrite Balance
-      overwriteClients(clients);        // Overwrite Clients
+  if (deleteClient)
+  {
+    (*clients).deleteAt(index);       // Delete Client
+    deleteClientHistory(clients, id); // Delete Client Transaction and Movements History
+    overwriteBalance(clients);        // OverWrite Balance
+    overwriteClients(clients);        // Overwrite Clients
 
-      pressEnterToCont("Client Deleted", true);
-    }
+    pressEnterToCont("Client Deleted", true);
   }
 }
 
@@ -110,6 +115,8 @@ void viewClients(Clients *clients, bool fields[], int sortBy[])
 {
   int l, m = fieldEnd - 1, n = sortByEnd / 2;
   string fieldsStr[m], sortByStr[n], applied;
+
+  assert(m > 0 && n > 0); // Check Variables
 
   if (fields[fieldAll])
     for (int i = 0; i < m; i++)
@@ -122,6 +129,8 @@ void viewClients(Clients *clients, bool fields[], int sortBy[])
   }
 
   l = getSortByStr(sortBy, sortByStr, n); // Get Sort By Array Length
+
+  assert(l > 0); // Check Variables
 
   cout << clear;
   printTitle("Clients Fields", applyBgColor, applyFgColor, false);
@@ -143,22 +152,28 @@ void viewClients(Clients *clients, bool fields[], int sortBy[])
 // Function to Filter Clients
 void filterClients(Clients *clients, string **params, int sortBy[])
 {
-  int l = fieldEnd - 1, m = maxParamPerSubCmd, n = sortByEnd / 2, nClientsFiltered;
+  int l = fieldEnd - 1, m = maxParamPerSubCmd, n = sortByEnd / 2;
   bool fields[l];
   string sortByStr[n];
+
+  assert(l > 0 && m > 0); // Check Variables
 
   fill(fields, fields + l, true); // Client Fields to Print (All)
   n = getSortByStr(sortBy, sortByStr, n);
 
+  assert(n > 0); // Check Variables
+
   cout << clear;
   printTitle("Client Fields Parameters", applyBgColor, applyFgColor, false);
   print2DArray(params, l, m, fieldCmdsStr);
+
   printTitle("Sort By Parameters", applyBgColor, applyFgColor, false);
   printArray(sortByStr, n, "Sort By");
 
   pressEnterToCont("Press ENTER to Continue", false);
 
   filterClients(clients, params, fields, sortBy); // Filter Clients
+
   cout << '\n';
   pressEnterToCont("Press ENTER to Continue", false);
 }
@@ -274,7 +289,7 @@ void depositMoney(Clients *clients)
   {
     check = getClientId(clients, &id, &index, "Client ID"); // Get Client Id and Check if it Exists
 
-    if (check == clientSuspended) // The Client Cannot Deposit Any Money while his Account is Suspended
+    if (check == clientSuspended) // The Client Cannot Deposit Money while his Account is Suspended
       suspended = true;
 
     if (check != clientFound)
@@ -283,6 +298,7 @@ void depositMoney(Clients *clients)
       break;
     }
 
+    assert(id >= 0 && index >= 0);                      // Check Client Id and Index
     printClientInfo((*clients).getClient(index), true); // Print Client Info
 
     if (booleanQuestion("Is this your Client Account?"))
@@ -292,6 +308,7 @@ void depositMoney(Clients *clients)
   if (check != clientNotFound && !suspended)
   { // Check if the Client isn't Suspended
     amount = getFloat("Enter the Amount to Deposit", minDeposit, maxDeposit);
+    assert(amount > 0); // Check if the Amount is Positive
 
     if (clientActionConfirm(clientDeposit)) // Asks the Client for Confirmation
     {
@@ -329,6 +346,7 @@ void getBalance(Clients *clients)
       break;
     }
 
+    assert(id >= 0 && index >= 0);        // Check Client Id and Index
     client = (*clients).getClient(index); // Get Client
     printClientInfo(client, true);        // Print Client Info
 
@@ -336,10 +354,15 @@ void getBalance(Clients *clients)
       break;
   }
 
-  ostringstream stream;
+  if (check == clientFound)
+  {
+    ostringstream stream;
 
-  stream << "Balance: $" << client.balance;
-  pressEnterToCont(stream.str(), (client.balance < warningBalance) ? true : false);
+    stream << "Balance: $" << client.balance;
+    assert(client.balance >= 0.0); // Check Client Balance
+
+    pressEnterToCont(stream.str(), (client.balance < warningBalance) ? true : false);
+  }
 }
 
 // Function for Clients to Cashout Money from their Accounts
@@ -360,7 +383,7 @@ void cashoutMoney(Clients *clients)
   {
     check = getClientId(clients, &id, &index, "Client ID"); // Get Client Id and Check if it Exists
 
-    if (check == clientSuspended) // The Client Cannot Deposit Any Money while his Account is Suspended
+    if (check == clientSuspended) // The Client Cannot Cash Out Money while his Account is Suspended
       suspended = true;
 
     if (check != clientFound)
@@ -369,6 +392,7 @@ void cashoutMoney(Clients *clients)
       break;
     }
 
+    assert(id >= 0 && index >= 0);        // Check Client Id and Index
     client = (*clients).getClient(index); // Get Client
     printClientInfo(client, true);        // Print Client Info
 
@@ -380,6 +404,7 @@ void cashoutMoney(Clients *clients)
   {                             // Check if the Client isn't Suspended
     printClientBalance(client); // Print Client Balance
     amount = getFloat("Enter the Amount to Cash Out", minDeposit, maxDeposit);
+    assert(amount > 0); // Check if the Amount is Positive
 
     if ((*clients).getClient(index).balance < amount)
       pressEnterToCont("Insufficient Funds", true);
@@ -415,7 +440,7 @@ void sendMoney(Clients *clients)
   {
     check = getClientId(clients, &idFrom, &indexFrom, "Client ID"); // Get Client Id and Check if it Exists
 
-    if (check == clientSuspended) // The Client Cannot Deposit Any Money while his Account is Suspended
+    if (check == clientSuspended) // The Client Cannot Send Money while his Account is Suspended
       suspended = true;
 
     if (check != clientFound)
@@ -424,6 +449,7 @@ void sendMoney(Clients *clients)
       break;
     }
 
+    assert(idFrom >= 0 && indexFrom >= 0);        // Check Client Id and Index
     clientFrom = (*clients).getClient(indexFrom); // Get Client
     printClientInfo(clientFrom, true);            // Print Client Info
 
@@ -436,6 +462,7 @@ void sendMoney(Clients *clients)
     while (true)
     {
       check = getClientId(clients, &idTo, &indexTo, "Send to Client ID"); // Get Client Id and Check if it Exists
+      assert(idTo >= 0 && indexTo >= 0);                                  // Check Client Id and Index
 
       if (check == clientNotFound)
       {
@@ -458,6 +485,7 @@ void sendMoney(Clients *clients)
     {
       printClientBalance(clientFrom); // Print Client Balance
       amount = getFloat("Enter the Amount to Send", minDeposit, maxDeposit);
+      assert(amount > 0); // Check if the Amount is Positive
 
       if (clientFrom.balance < amount)
         pressEnterToCont("Insufficient Funds", true);
@@ -496,11 +524,12 @@ void changeStatus(Clients *clients)
     checkClientStatus(clientStatus);
   else if (clientStatus != errorStatus)
   {
+    assert(id >= 0 && index >= 0); // Check Client Id and Index
+
     if (clientStatus == clientSuspended) // Ask wether to Suspend or Active Account
       change = booleanQuestion("Do you want to Activate the Client?");
     else
       change = booleanQuestion("Do you want to Suspend the Client?");
-    cout << '\n';
 
     printClientInfo((*clients).getClient(index), true);
     if (!change)
@@ -546,6 +575,7 @@ int getSortByStr(int sortBy[], string sortByStr[], int n)
   for (int j = 0; j < n; j++)
   {
     charIndex = sortBy[j];
+    assert(charIndex == -1 || charIndex >= 0 && charIndex < sortByEnd); // Check Sort By Index
     nullParam = false;
 
     if (charIndex == -1)
@@ -561,5 +591,6 @@ int getSortByStr(int sortBy[], string sortByStr[], int n)
       nParams++;
     }
   }
+  assert(nParams >= 0); // Check nParams
   return nParams;
 }

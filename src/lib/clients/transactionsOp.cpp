@@ -3,7 +3,9 @@
 #include <fstream>
 #include <string>
 
-#include "transactionsOp.h"
+// #define NDEBUG
+#include <assert.h>
+
 #include "clientsOp.h"
 #include "../namespaces.h"
 
@@ -24,6 +26,7 @@ string getCurrentTime();
 void storeMovement(string time, clientActions action, Clients *clients, int indexFrom, float amount, int indexTo)
 {
   Client clientFrom = (*clients).getClient(indexFrom); // Get Client
+  double balanceFrom;
 
   ofstream movementsCSV(movementsFilename, ios::app);
 
@@ -35,16 +38,25 @@ void storeMovement(string time, clientActions action, Clients *clients, int inde
                << sep << time << "\n";
   movementsCSV.close();
 
+#ifndef NDEBUG
+  balanceFrom = clientFrom.balance;
+#endif
+
   if (action == clientDeposit)
     clientFrom.balance += amount;
   else
     clientFrom.balance -= amount;
+
   (*clients).updateBalance(indexFrom, clientFrom.balance);
+
+  if (action == clientCashout || action == clientSend) // Check if the Client have the Money
+    assert(balanceFrom >= amount);
 
   if (action == clientSend && indexTo != -1)
   {
     Client clientTo = (*clients).getClient(indexTo); // Get Client
-    clientTo.balance += amount;                      // Update Balance
+
+    clientTo.balance += amount; // Update Balance
     (*clients).updateBalance(indexTo, clientTo.balance);
   }
 
@@ -164,6 +176,8 @@ void deleteClientHistory(Clients *clients, int clientId)
 
   ofstream ofmovementsCSV(movementsFilename), oftransactionsCSV(transactionsFilename);
 
+  assert(movements.str().length() > 0 && transactions.str().length() > 0); // Check if the File Content Could be Added to the Streams
+
   ofmovementsCSV << movements.str(); // Write Movements Stream Content to movements.csv
   ofmovementsCSV.close();
   oftransactionsCSV << transactions.str(); // Write Transactions Stream Content to transactions.csv
@@ -179,5 +193,7 @@ string getCurrentTime()
   ostringstream stream; // Get Date as a String
 
   stream << put_time(&tm, "%Y-%m-%d %H:%M:%S");
+  assert(stream.str().length() > 11); // Check Stream Length
+
   return stream.str(); // Return Stream as a String
 }

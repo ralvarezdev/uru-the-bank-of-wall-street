@@ -4,6 +4,9 @@
 #include <string>
 #include <typeinfo>
 
+// #define NDEBUG
+#include <assert.h>
+
 #include "../namespaces.h"
 
 using namespace std;
@@ -44,6 +47,7 @@ string getLastDigits(T number, int numberDigits)
       dDivision = numberDouble;
     lastDigits.append(to_string(abs(int(dDivision) % 10)));
   }
+  assert(lastDigits.length() == numberDigits); // Check if it has the Right Number of Digits
 
   return lastDigits;
 }

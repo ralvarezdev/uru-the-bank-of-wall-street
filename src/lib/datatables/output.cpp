@@ -1,6 +1,9 @@
 #include <iomanip>
 #include <iostream>
 
+// #define NDEBUG
+#include <assert.h>
+
 #include "../terminal/ansiEsc.h"
 #include "../terminal/input.h"
 #include "../namespaces.h"
@@ -40,6 +43,8 @@ void printExamples(cmdExplanation examples[], int n)
     for (int j = 0; j < examples[i].cmd.length(); j += nCharLine)
     {
       message = examples[i].cmd.substr(j, nCharLine + j);
+      assert(message.length() <= nCharLine); // Check message String Length
+
       cout << '\n'
            << tab1 << message << '\n';
     }
@@ -79,6 +84,8 @@ void printArray(string *params, int n, string paramTitle)
 {
   string param;
 
+  assert(nCharTitle > 0 && nCharParam > 0 && maxSpacing > 0); // Check nCharTitle, nCharParam and maxSpacing
+
   cout << setw(nCharTitle) << setfill(' ') << left << paramTitle;
   for (int i = 0; i < n && params[i] != "null"; i++)
   {
@@ -117,6 +124,8 @@ void printClientInfo(Client client, bool censoreInfo)
   string accountType = accountStr[client.type];                   // Get Client Type
   string suspended = (client.suspended) ? "Suspended" : "Active"; // Get Client Status
 
+  assert(nCharContent > 0); // Check nCharContent
+
   cout << '\n';
   printTitle("Client Info", applyBgColor, applyFgColor, false);
 
@@ -153,14 +162,17 @@ void printClients(Clients *clients, bool *fields)
   const int nAccountType = 15;   // ... for Account Type
   const int nSuspended = 18;     // ... for Suspended Status
   const int nAccountNumber = 20; // ... for Account Number
+  const int nBalance = 12;       // ... for Balance
 
   int nName = nChar; // Decrease the Number of Characters Used by the Name Field
   int n = fieldEnd - 1;
 
-  int fieldsNChar[n] = {nId, 0, nAccountType, nSuspended, nAccountNumber}; // Number of Characters per Field
+  int fieldsNChar[n] = {nId, 0, nAccountType, nSuspended, nAccountNumber, nBalance}; // Number of Characters per Field
   for (int i = 0; i < n; i++)
     if (fields[i] && i != fieldName)
-      nName -= fieldsNChar[i]; // Decrease Number of Characters for Movie's Name FIeld
+      nName -= fieldsNChar[i]; // Decrease Number of Characters for Movie's Name Field
+
+  assert(nName > 0); // Check nName
   fieldsNChar[fieldName] = nName;
 
   cout << clear << sgrBgCmd << sgrFgCmd;
@@ -197,6 +209,9 @@ void printClients(Clients *clients, bool *fields)
 
     if (fields[fieldAccountNumber]) // Client Account Number
       cout << fixed << setprecision(0) << setw(nAccountNumber) << setfill(' ') << client.account;
+
+    if (fields[fieldAccountNumber]) // Client Balance
+      cout << fixed << setprecision(0) << setw(nBalance) << setfill(' ') << client.balance;
 
     cout << '\n';
   }

@@ -62,11 +62,11 @@ Only C++.
 # Commands
 This is the Full List of Commands for Each Action in the Program
 
-![Screenshot (727)](https://github.com/ralvarezdev/ProyectoLaboratorio_RR/assets/86166683/64c3d531-83a5-41cb-ae0d-61acc8b32571)
+![Screenshot (843)](https://github.com/ralvarezdev/ProyectoLaboratorio_RR/assets/86166683/93268cdb-84ed-42c2-8bf3-55ffa3efc55d)
 
-![Screenshot (728)](https://github.com/ralvarezdev/ProyectoLaboratorio_RR/assets/86166683/baf61880-6bd1-4976-b485-82f785b9bb67)
+![Screenshot (844)](https://github.com/ralvarezdev/ProyectoLaboratorio_RR/assets/86166683/c61117d1-dab3-4993-a500-d2f856032ae5)
 
-![Screenshot (729)](https://github.com/ralvarezdev/ProyectoLaboratorio_RR/assets/86166683/1d5af61f-b876-44c2-8c61-facf7163da1c)
+![Screenshot (863)](https://github.com/ralvarezdev/ProyectoLaboratorio_RR/assets/86166683/386aec69-a9c0-49e1-ad53-1611f3423e8d)
 
 # View Clients Command Examples
 

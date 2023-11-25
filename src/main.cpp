@@ -4,6 +4,9 @@
 #include <sstream>
 #include <string>
 
+// #define NDEBUG
+#include <assert.h>
+
 #include "lib/clients/clientsOp.h"
 #include "lib/data/dataOp.h"
 #include "lib/terminal/ansiEsc.h"
@@ -17,7 +20,7 @@ using namespace terminal;
 
 /*
 --- NOTES
-- For this proyect we're not allowed to use maps, vectors, classes, linked lists, tuples.
+- For this proyect we're not allowed to use maps, vectors, linked lists, tuples.
 That's the reason why the program is written like this
 */
 
@@ -26,12 +29,23 @@ extern bool validFieldsToFilter[];
 extern int cmdsChar[], subCmdsChar[], fieldCmdsChar[];
 extern char *fieldCmdsStr[], *actionsStr[], *accountStr[];
 
-// --- Global Variables
-int nClientsRead = 0; // Number of Clients that had been Read and Copied from clients.csv
+// --- Templates
+template <typename T>
+void overwriteSortByParam(T *cmdStruct, int *counter, int sortByOrder[], int indexParam)
+{ // It will Overwrite the Previous Sorting for this Parameter, if it was Specified
+  if ((*cmdStruct).sortBy[indexParam / 2] != -1)
+  {
+    sortByOrder[*counter] = indexParam;
+    *counter = *counter + 1;
+  }
+
+  (*cmdStruct).sortBy[indexParam / 2] = indexParam;
+}
 
 // --- Function Prototypes
 void helpMessage();
 void changeCwdToData();
+void checkCmd(bool isViewClientsCmd, string input, bool *moreInput, bool *isField);
 void initPtrArray(string **ptrArray, string array[][maxParamPerSubCmd], int arrayCounter[], int n);
 
 int main(int argc, char **argv)
@@ -54,7 +68,7 @@ int main(int argc, char **argv)
   Clients clients = Clients(); // Allocate Memory
   getClients(&clients);        // Get Clients
 
-  if (nClientsRead == -1)
+  if (clients.getNumberClients() < 0)
     return -1; // An Error Ocurred
 
   while (!exit) // Main While Loop of the Program
@@ -86,8 +100,7 @@ int main(int argc, char **argv)
       isCmd = validCmd;
     }
 
-    if (timesExec == 0 && argc > 1)
-    { // Checks if it's a Command
+    if (timesExec == 0 && argc > 1) // Checks if it's a Command
       for (int i = 1; i < argc; i++)
       {
         inputWord = argv[i];
@@ -101,7 +114,6 @@ int main(int argc, char **argv)
 
         inputLine.append(inputWord); // Append the Parameter
       }
-    }
     else
     {
       helpMessage();
@@ -124,7 +136,9 @@ int main(int argc, char **argv)
     }
 
     stringstream stream(inputLine); // Stream the Input
-    timesExec++;                    // Increase the Counter of Commands Executed
+
+    timesExec++; // Increase the Counter of Commands Executed
+    assert(timesExec > 0);
 
     if (!getline(stream, inputWord, ' '))
     { // Couldn't Get the Command
@@ -142,199 +156,180 @@ int main(int argc, char **argv)
       bool isViewClientsCmd = (index.main == cmdViewClients); // Boolean to Check if the Current Command is View Clients
 
       int nSortBy = sortByEnd / 2;
+      assert(nSortBy > 0); // Check if Enum sortByEnd is Greater than 0
+
       int sortByOrder[nSortBy], sortByCounter = 0; // Save Sorting Order
-      for (int i = 0; i < nSortBy; i++)
-        sortByOrder[i] = -1;
+      fill(sortByOrder, sortByOrder + nSortBy, -1);
 
       if (isViewClientsCmd)
-      { // Initialize viewClients Sruct
-        viewClientsCmd = ViewClientsCmd();
+      {
+        viewClientsCmd = ViewClientsCmd();                                // Initialize viewClients Sruct
         fill(viewClientsCmd.sortBy, viewClientsCmd.sortBy + nSortBy, -1); // Initialize Sort By Array
       }
       else
       {
         filterClientsCmd = FilterClientsCmd();
-        for (int i = 0; i < fieldEnd - 1; i++)
-          fill(filterClientsCmd.params[i], filterClientsCmd.params[i] + maxParamPerSubCmd, "null");            // Initialize Params to Filter Array
+        for (int i = 0; i < fieldEnd - 1; i++) // Initialize Params to Filter Array
+          fill(filterClientsCmd.params[i], filterClientsCmd.params[i] + maxParamPerSubCmd, "null");
         initPtrArray(filterClientsCmd.paramsPtr, filterClientsCmd.params, filterClientsCmd.counter, fieldEnd); // Copy Array to Pointer Array
         fill(filterClientsCmd.sortBy, filterClientsCmd.sortBy + nSortBy, -1);                                  // Initialize Sort By Array
       }
 
-      while (true)
+      try
       {
-        if (isCmd != validCmd)
-          break; // Exit this While-loop
-        isCmd = validCmd;
+        int fieldsCounter = 0, sortByCounter = 0;
 
-        while (!moreInput && getline(stream, inputWord, ' '))
-          if (inputWord[0] == '-')
-            moreInput = true; // First Parameter Must be a Command
-
-        if (!moreInput)
-          break; // Exit this While-loop
-        moreInput = false;
-        isField = true;
-
-        if (inputWord.length() < 2)
-        { // Check if the Command has the Minimum String Length
-          isCmd = wrongSubCmd;
-          break;
-        }
-
-        cmd.sub = inputWord[1]; // Check if the Command is in the Array of subCommands
-        index.sub = isCharOnArray(cmd.sub, subCmdsChar, subCmdEnd);
-
-        if (inputWord[0] != '-' && index.sub == -1)
-        { // Wrong Subcommand
-          isCmd = wrongSubCmd;
-          break;
-        }
-
-        if (index.sub == subCmdSortBy)
-        { // Get Sort By Parameters
-          while (getline(stream, inputWord, ' '))
-          {
-            if (inputWord[0] == '-')
-            { // It's not a Sort By Parameter
-              moreInput = true;
-              break;
-            }
-
-            cmd.param = inputWord[0];
-            index.param = isCharOnArray(tolower(cmd.param), fieldCmdsChar, fieldEnd) * 2; // Check if the Command is in the Sort By Array
-            if (isupper(cmd.param))                                                       // If the Character is Uppercase, Increase the Index by One to Match with the Descending Order Command Index
-              index.param++;
-
-            if (index.param == -1 || index.param == fieldAll)
-            { // Wrong Sort By Command Parameter
-              isCmd = wrongSortByParam;
-              break;
-            }
-
-            if (isViewClientsCmd)
-            { // It will Overwrite the Previous Sorting for this Parameter, if it was Specified
-              if (viewClientsCmd.sortBy[index.param / 2] != -1)
-                sortByOrder[sortByCounter++] = index.param;
-
-              viewClientsCmd.sortBy[index.param / 2] = index.param;
-            }
-            else
-            {
-              if (filterClientsCmd.sortBy[index.param / 2] != -1)
-                sortByOrder[sortByCounter++] = index.param;
-
-              filterClientsCmd.sortBy[index.param / 2] = index.param;
-            }
-          }
-          continue;
-        }
-
-        getline(stream, inputWord, ' ');
-
-        while (isField) // Get Field Parameters
+        while (true)
         {
-          isField = false;
+          while (!moreInput && getline(stream, inputWord, ' '))
+            if (inputWord[0] == '-')
+              moreInput = true; // First Parameter Must be a Command
 
-          if (inputWord[0] == '-' && (isViewClientsCmd || (!isViewClientsCmd && inputWord.length() < 3)))
-          { // It's not a Field Command or a Parameter
-            moreInput = true;
-            break;
-          }
+          if (!moreInput)
+            break; // Exit this While-loop
+          moreInput = false;
+          isField = true;
 
-          cmd.field = (isViewClientsCmd) ? inputWord[0] : inputWord[2];
-          index.field = isCharOnArray(cmd.field, fieldCmdsChar, fieldEnd); // Check if the Command is in the Field Parameters Array
+          cmd.sub = inputWord[1]; // Check if the Command is in the Array of subCommands
+          index.sub = isCharOnArray(cmd.sub, subCmdsChar, subCmdEnd);
 
-          if (index.field == -1 || (!isViewClientsCmd && (index.field == fieldAll || !validFieldsToFilter[index.field])))
-          { // Wrong Field Parameter or Field Command
-            isCmd = (isViewClientsCmd) ? wrongFieldParam : wrongField;
-            break;
-          }
+          if (index.sub == -1) // Wrong Subcommand
+            throw(wrongSubCmd);
 
-          if (isViewClientsCmd)
-          {
-            viewClientsCmd.params[index.field] = true;
-
-            if (getline(stream, inputWord, ' '))                 // Get the Next Argument
-              if (inputWord[0] == '-' && inputWord.length() < 3) // It's a Subcommand
+          if (index.sub == subCmdSortBy)
+          { // Get Sort By Parameters
+            while (getline(stream, inputWord, ' '))
+            {
+              if (inputWord[0] == '-') // It's not a Sort By Parameter
+              {
                 moreInput = true;
-              else if (inputWord[0] != '-' && inputWord.length() > 0)
-                isField = true;
-
-            continue;
-          }
-
-          int *paramCounter; // Counter
-
-          paramCounter = &filterClientsCmd.counter[index.field];
-
-          while (*paramCounter < maxParamPerSubCmd && getline(stream, inputWord, ' '))
-          { // Iterate while there's a Parameter and can be Added to the Array
-            if (inputWord[0] == '"')
-            { // If it Starts with Double Quote, it's a Long Sentence (a Parameter with Multiple Words)
-              if (!getline(stream, inputLong, '"'))
-              { // Incomplete Long Parameter
-                isCmd = wrongFilterClientsCmd;
                 break;
               }
 
-              inputWord.insert(inputWord.length(), 1, ' ');                 // Insert Whitespace at the End
-              inputLong.insert(0, inputWord.substr(1, inputWord.length())); // Insert the Parameter at the Beginning of the String, without the Double Quote
-              inputWord = inputLong;
-            }
-            else if (inputWord[0] == '-')
-            { // If it's a Command break this For-loop
-              if (inputWord.length() < 3)
-                moreInput = true;
-              else if (inputWord.length() > 2)
-                isField = true;
-              break;
-            }
-            else if (inputWord.length() == 0) // To Prevent Adding Whitespaces as Parameters-
-              continue;
+              // Check if the Command is in the Sort By Array
+              cmd.param = inputWord[0];
+              index.param = isCharOnArray(tolower(cmd.param), fieldCmdsChar, fieldEnd) * 2;
 
-            try
-            { // Add Parameter to Search Client
-              if (index.field == fieldId)
-                stoi(inputWord); // Check if the String can be Converted into an Integer
+              // If the Character is Uppercase, Increase the Index by One to Match with the Descending Order Command Index
+              if (isupper(cmd.param))
+                index.param++;
 
-              filterClientsCmd.params[index.field][*paramCounter] = inputWord;
-            }
-            catch (...)
-            {
-              continue; // Ignore the Parameter
-            }
+              if (index.param == -1 || index.param == fieldAll) // Wrong Sort By Command Parameter
+                throw(wrongSortByParam);
+              sortByCounter++;
 
-            *paramCounter += 1; // Parameter Counter
+              if (isViewClientsCmd)
+                overwriteSortByParam(&viewClientsCmd, &sortByCounter, sortByOrder, index.param);
+              else
+                overwriteSortByParam(&filterClientsCmd, &sortByCounter, sortByOrder, index.param);
+            }
+            continue;
           }
 
-          while (!isField && !moreInput) // Reached Max Number of Parameters for Command
-            if (!getline(stream, inputWord, ' '))
+          if (!getline(stream, inputWord, ' '))
+            throw((isViewClientsCmd) ? wrongField : wrongFieldParam); // Missing Parameter
+
+          while (isField) // Get Field Parameters
+          {
+            isField = false;
+
+            checkCmd(isViewClientsCmd, inputWord, &moreInput, &isField); // Check Command
+            if (moreInput)                                               // It's not a Field Command or a Parameter
               break;
-            else if (inputWord[0] == '-') // Got a Command
-              if (inputWord.length() < 3)
-                moreInput = true;
-              else if (inputWord.length() > 2)
-                isField = true;
+
+            cmd.field = (isViewClientsCmd) ? inputWord[0] : inputWord[2];
+            index.field = isCharOnArray(cmd.field, fieldCmdsChar, fieldEnd); // Check if the Command is in the Field Parameters Array
+
+            if (index.field == -1 || (!isViewClientsCmd && (index.field == fieldAll || !validFieldsToFilter[index.field]))) // Wrong Field Parameter or Field Command
+              throw((isViewClientsCmd) ? wrongFieldParam : wrongField);
+
+            if (isViewClientsCmd)
+            {
+              viewClientsCmd.params[index.field] = true;
+              fieldsCounter++;
+
+              if (getline(stream, inputWord, ' '))                           // Get the Next Argument
+                checkCmd(isViewClientsCmd, inputWord, &moreInput, &isField); // Check Command
+              else if (sortByCounter == 0)
+                throw(wrongSortByParam); // Missing Sort By Param
+
+              continue;
+            }
+
+            int *paramCounter; // Counter
+
+            paramCounter = &filterClientsCmd.counter[index.field];
+
+            while (*paramCounter < maxParamPerSubCmd && getline(stream, inputWord, ' '))
+            { // Iterate while there's a Parameter and can be Added to the Array
+
+              if (inputWord.length() == 0) // To Prevent Adding Whitespaces as Parameters-
+                continue;
+              else if (inputWord[0] != '"')
+              {
+                checkCmd(isViewClientsCmd, inputWord, &moreInput, &isField); // Check Command
+                if (moreInput)
+                  break;
+              }
+              else
+              { // If it Starts with Double Quote, it's a Long Sentence (a Parameter with Multiple Words)
+                if (!getline(stream, inputLong, '"'))
+                  throw(wrongFilterClientsCmd); // Incomplete Long Parameter
+
+                inputWord.insert(inputWord.length(), 1, ' ');                 // Insert Whitespace at the End
+                inputLong.insert(0, inputWord.substr(1, inputWord.length())); // Remove Double Quote
+                inputWord = inputLong;
+              }
+
+              try
+              {                                  // Add Parameter to Search Client
+                assert(inputWord.length() != 0); // Check inputWord String Length
+
+                if (index.field == fieldId)
+                  stoi(inputWord); // Check if the String can be Converted into an Integer
+
+                filterClientsCmd.params[index.field][*paramCounter] = inputWord;
+                fieldsCounter++;
+              }
+              catch (...)
+              {
+                continue; // Ignore the Parameter
+              }
+
+              *paramCounter += 1; // Parameter Counter
+            }
+
+            if (*paramCounter == 0) // Missing Field Param
+              throw(wrongFieldParam);
+
+            // Check if *paramCounter doesn't have Invalid Values
+            assert(*paramCounter > 0 && *paramCounter <= maxParamPerSubCmd);
+
+            while (!isField && !moreInput) // Reached Max Number of Parameters for Command
+              if (!getline(stream, inputWord, ' '))
+                break;
+              else
+                checkCmd(isViewClientsCmd, inputWord, &moreInput, &isField); // Check Command
+          }
         }
+
+        for (int i = 0; i < nSortBy; i++) // Save the Sort By Array based on the Order they were Introduced
+          if (sortByOrder[i] != -1)
+            if (isViewClientsCmd)
+              viewClientsCmd.sortBy[i] = sortByOrder[i];
+            else
+              filterClientsCmd.sortBy[i] = sortByOrder[i];
+
+        if (fieldsCounter == 0)
+          throw((isViewClientsCmd) ? wrongField : wrongFieldParam);
+        else if (sortByCounter == 0)
+          throw(wrongSortByParam);
       }
-
-      for (int i = 0; i < nSortBy; i++) // Save the Sort By Array based on the Order they were Introduced
-        if (sortByOrder[i] != -1)
-          if (isViewClientsCmd)
-            viewClientsCmd.sortBy[i] = sortByOrder[i];
-          else
-            filterClientsCmd.sortBy[i] = sortByOrder[i];
-
-      if (isCmd == validCmd)
-        switch (index.main)
-        {
-        case cmdViewClients:
-          viewClients(&clients, viewClientsCmd.params, viewClientsCmd.sortBy);
-          break;
-        case cmdFilterClients:
-          filterClients(&clients, filterClientsCmd.paramsPtr, filterClientsCmd.sortBy);
-          break;
-        }
+      catch (cmdStatus cmdStatus)
+      {
+        isCmd = cmdStatus;
+        assert(isCmd != validCmd); // Check if the Command is Invalid
+      }
     }
 
     if (isCmd != validCmd)
@@ -344,8 +339,16 @@ int main(int argc, char **argv)
       continue;
     }
 
+    assert(index.main >= 0 && index.main < cmdEnd); // Check if the Command is Valid
+
     switch (index.main)
     {
+    case cmdViewClients:
+      viewClients(&clients, viewClientsCmd.params, viewClientsCmd.sortBy);
+      break;
+    case cmdFilterClients:
+      filterClients(&clients, filterClientsCmd.paramsPtr, filterClientsCmd.sortBy);
+      break;
     case cmdGetBalance:
       getBalance(&clients);
       break;
@@ -446,6 +449,26 @@ void changeCwdToData()
   }
 }
 
+// Function to Check Command Typed as Input
+void checkCmd(bool isViewClientsCmd, string input, bool *moreInput, bool *isField)
+{
+  bool isCmd = input[0] == '-';
+  int inputLength = input.length();
+
+  if (isViewClientsCmd)
+  {
+    if (isCmd && inputLength < 3 && inputLength > 0) // It's a Subcommand
+      *moreInput = true;
+    else if (!isCmd && inputLength > 0) // It's a Field Parameter
+      *isField = true;
+  }
+  else if (isCmd)        // Got a Command
+    if (inputLength < 3) // It's a Subcommand
+      *moreInput = true;
+    else if (inputLength > 2) // It's a Field Parameter
+      *isField = true;
+}
+
 // --- Extern Variables and Constants Assignment
 
 int cmdsChar[cmdEnd] = { // Commands Character
@@ -491,8 +514,8 @@ bool validFieldsToFilter[fieldEnd] = { // Fields that can be Used in Filter Clie
     [fieldName] = true,
     [fieldAccountType] = false,
     [fieldAccountStatus] = false,
-    [fieldAccountNumber] = false,
-    [fieldBalance] = true};
+    [fieldAccountNumber] = true,
+    [fieldBalance] = false};
 
 char *accountStr[accountEnd] = { // Account Types
     [accountCurrent] = "current",

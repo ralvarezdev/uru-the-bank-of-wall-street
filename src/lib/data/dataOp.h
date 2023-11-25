@@ -1,6 +1,9 @@
 #include <string>
 #include <typeinfo>
 
+// #define NDEBUG
+#include <assert.h>
+
 #include "../namespaces.h"
 
 using namespace std;
@@ -38,6 +41,7 @@ string addBrackets(T message)
   else
     addedBrackets = message; // Message is of type String
 
+  assert(addedBrackets.length() > 0); // Check if the Character Could be Appended to the String
   addedBrackets.insert(0, 1, '[');
 
   return addedBrackets.insert(addedBrackets.length(), 1, ']');

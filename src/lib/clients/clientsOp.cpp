@@ -4,9 +4,13 @@
 #include <sstream>
 #include <string>
 
+// #define NDEBUG
+#include <assert.h>
+
 #include "clientsOp.h"
 #include "../namespaces.h"
 #include "../datatables/output.h"
+#include "../terminal/ansiEsc.h"
 #include "../terminal/input.h"
 
 using namespace std;
@@ -36,7 +40,7 @@ clientStatus getClientId(Clients *clients, int *id, int *index, string message);
 void getClients(Clients *clients)
 {
   Client client;
-  int id, nClients, clientCounter, count = 0;
+  int id, nClients, clientCounter = 0, count = 0;
   float balance;
   string line, word;
 
@@ -86,7 +90,13 @@ void getClients(Clients *clients)
           }
         count++;
       }
+
+#ifndef NDEBUG
+      nClients = (*clients).getNumberClients();
+#endif
+
       (*clients).pushBack(newClient);
+      assert(nClients == (*clients).getNumberClients() - 1); // Check if the Number of Clients Gets Increased
     }
     catch (...)
     {
@@ -97,7 +107,6 @@ void getClients(Clients *clients)
   ifstream balanceCSV(balanceFilename);
   clientsMergeSort(clients, sortByIdA); // Sort Clients by Id
 
-  clientCounter = 0;
   nClients = (*clients).getNumberClients();
   while (getline(balanceCSV, line)) // Get Clients Balance
     try
@@ -164,7 +173,8 @@ void overwriteClients(Clients *clients)
             << suspended << '\n';
   }
 
-  clientsCSV << content.str(); // Write Content to clients.csv
+  assert(content.str().length() > 0); // Check if the Content Could be Added to the Stream
+  clientsCSV << content.str();        // Write Content to clients.csv
   clientsCSV.close();
 }
 
@@ -182,7 +192,9 @@ void overwriteBalance(Clients *clients)
     client = (*clients).getClient(i); // Get Client
     content << client.id << sep << fixed << setprecision(2) << client.balance << '\n';
   }
-  balanceCSV << content.str(); // Write Content to balance.csv
+
+  assert(content.str().length() > 0); // Check if the Content Could be Added to the Stream
+  balanceCSV << content.str();        // Write Content to balance.csv
   balanceCSV.close();
 }
 
@@ -191,15 +203,18 @@ void filterClients(Clients *clients, string **params, bool fields[], int sortBy[
 {
   clientStatus clientStatus;
   double account;
-  int i, id, index, counter, nClientsRead = (*clients).getNumberClients();
+  int i, id, index, counter = 0, nClientsRead = (*clients).getNumberClients();
   string nameLower;
+
+  assert(nClientsRead > 0); // Check if the Number of Clients is Greater than 0
 
   bool *filteredIndexes = new bool[nClientsRead];               // Allocate Memory
   fill(filteredIndexes, filteredIndexes + nClientsRead, false); // Fill Array with False Values
 
   for (int field = 0; field < fieldEnd - 1; field++)
   {
-    if (validFieldsToFilter[field] && params[field][0] == "null") // Check if the Function can Filter that Field, and if there are Parameters
+    // Check if the Function can Filter that Field, and if there are Parameters
+    if (validFieldsToFilter[field] && params[field][0] == "null")
       continue;
 
     for (int param = 0; param < maxParamPerSubCmd && params[field][param] != "null"; param++)
@@ -216,6 +231,7 @@ void filterClients(Clients *clients, string **params, bool fields[], int sortBy[
           account = stod(params[field][param]);
           clientStatus = checkClient(clients, account, fieldAccountNumber, &index); // Binary Search
         }
+        assert(index >= 0); // Check the Client Index
 
         if (clientStatus != clientNotFound && !filteredIndexes[index])
         {                                // Checks if the Client has Already being Filtered
@@ -244,8 +260,17 @@ void filterClients(Clients *clients, string **params, bool fields[], int sortBy[
     if (filteredIndexes[i])
       filteredClients.pushBack((*clients).getClient(i)); // Save Client that has been Filtered to Array
 
-  sortClients(&filteredClients, sortBy, sortByEnd); // Sort Clients
-  printClients(&filteredClients, fields);           // Print Clients
+  sortClients(&filteredClients, sortBy, sortByEnd / 2); // Sort Clients
+  printClients(&filteredClients, fields);               // Print Clients
+
+  string message = "Number of Coincidences: ";
+  message.append(to_string(counter));
+
+  if (counter == 0)
+    cout << string(nChar, '_') << '\n';
+
+  cout << '\n';
+  printTitle(message, applyBgColor, applyFgColor, (counter == 0) ? true : false); // Print Number of Coincidences
 
   filteredClients.deallocate(); // Deallocate Memory
   delete[] filteredIndexes;
@@ -256,8 +281,8 @@ void addClientToFile(Clients *clients)
 {
   Client newClient = Client();
 
-  int iter, check, id, index;
-  string temp, date, accountType;
+  int check, id, index = -1;
+  string temp, accountType;
 
   newClient.suspended = true; // New Clients will have to wait for an Admin to Remove their Suspension
   string suspended = (newClient.suspended) ? "true" : "false";
@@ -265,10 +290,14 @@ void addClientToFile(Clients *clients)
   check = getClientId(clients, &id, &index, "ID"); // Get Client Id
 
   if (check != clientNotFound) // The Id has been Added to that File
+  {
+    assert(id >= 0 && index >= 0); // Check Client Id and Index
     wrongClientData(clientExists);
+  }
   else
   {
-    newClient.id = id; // Assign Client Id
+    assert(id >= 0 && index == -1); // Check Client Id and Index
+    newClient.id = id;              // Assign Client Id
 
     cout << "Name: "; // Get Client Name
     getline(cin, newClient.name);
@@ -293,6 +322,7 @@ void addClientToFile(Clients *clients)
 
     check = booleanQuestion("Do you Want to Create a Debit (Y) or a Current (N) Account?");
     newClient.type = (check) ? accountDebit : accountCurrent;
+    newClient.balance = 0.0;                  // Set Balance to 0
     accountType = accountStr[newClient.type]; // Get Account Type
 
     (*clients).pushBack(newClient); // Added the Client Right After the Last One, and Increase the Counter of Occupied Indexes
@@ -324,6 +354,8 @@ void sortClients(Clients *clients, int sortBy[], int n)
 void clientsMergeSort(Clients *clients, int sortByIndex)
 {
   int pass, low, high, mid, i, n = (*clients).getNumberClients();
+  assert(n >= 0); // Check that the Array Has Some Clients
+
   Client *sorted = new Client[n]; // Store the Array in the Heap Memory
 
   for (pass = 2; pass <= n; pass *= 2)
@@ -343,6 +375,7 @@ void clientsMergeSort(Clients *clients, int sortByIndex)
       mid = (low + high) / 2;
       clientsMerge(clients, sorted, low, mid, n - 1, sortByIndex);
     }
+    assert(pass % 2 == 0); // Check that pass value is a Multiple of 2
   }
 
   if (pass / 2 < n)
@@ -358,6 +391,7 @@ void clientsMergeSort(Clients *clients, int sortByIndex)
 void clientsMerge(Clients *clients, Client sorted[], int low, int mid, int high, int sortByIndex)
 {
   int i = low, j = mid + 1, k = low;
+  assert(low <= high); // Check if value of low variable is less or equal to high
 
   switch (sortByIndex / 2)
   {

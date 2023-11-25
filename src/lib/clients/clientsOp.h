@@ -1,3 +1,6 @@
+// #define NDEBUG
+#include <assert.h>
+
 #include "../namespaces.h"
 #include "../terminal/input.h"
 
@@ -37,6 +40,8 @@ clientStatus checkClient(Clients *clients, T unique, fieldCmds field, int *index
   T value;
   int mid, start = 0, end = (*clients).getNumberClients() - 1;
   string line;
+
+  assert(end > start); // Check if the Last Index of the Array is Greater than the First One
 
   while (start <= end)
   { // Binary Search
