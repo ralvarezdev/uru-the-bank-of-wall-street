@@ -293,51 +293,50 @@ void addClientToFile(Clients *clients)
   {
     assert(id >= 0 && index >= 0); // Check Client Id and Index
     wrongClientData(clientExists);
+    return; // End this Function
   }
-  else
-  {
-    assert(id >= 0 && index == -1); // Check Client Id and Index
-    newClient.id = id;              // Assign Client Id
 
-    cout << "Name: "; // Get Client Name
-    getline(cin, newClient.name);
+  assert(id >= 0 && index == -1); // Check Client Id and Index
+  newClient.id = id;              // Assign Client Id
 
-    while (true) // Get Client Account Number
-      try
-      {
-        cout << "Account Number: ";
-        getline(cin, temp);
-        newClient.account = stoi(temp);
+  cout << "Name: "; // Get Client Name
+  getline(cin, newClient.name);
 
-        check = checkClient(clients, newClient.account, fieldAccountNumber, &index);
-        if (check != clientNotFound) // The Account Number has already been Added to that File
-          throw(-1);
-        else
-          break;
-      }
-      catch (...)
-      {
-        wrongClientData(invalidClientAccountNumber);
-      }
+  while (true) // Get Client Account Number
+    try
+    {
+      cout << "Account Number: ";
+      getline(cin, temp);
+      newClient.account = stoi(temp);
 
-    check = booleanQuestion("Do you Want to Create a Debit (Y) or a Current (N) Account?");
-    newClient.type = (check) ? accountDebit : accountCurrent;
-    newClient.balance = 0.0;                  // Set Balance to 0
-    accountType = accountStr[newClient.type]; // Get Account Type
+      check = checkClient(clients, newClient.account, fieldAccountNumber, &index);
+      if (check != clientNotFound) // The Account Number has already been Added to that File
+        throw(-1);
+      else
+        break;
+    }
+    catch (...)
+    {
+      wrongClientData(invalidClientAccountNumber);
+    }
 
-    (*clients).pushBack(newClient); // Added the Client Right After the Last One, and Increase the Counter of Occupied Indexes
+  check = booleanQuestion("Do you Want to Create a Debit (Y) or a Current (N) Account?");
+  newClient.type = (check) ? accountDebit : accountCurrent;
+  newClient.balance = 0.0;                  // Set Balance to 0
+  accountType = accountStr[newClient.type]; // Get Account Type
 
-    ofstream clientsCSV(clientsFilename, ios::app); // Write to File
-    clientsCSV << newClient.id << sep << newClient.name << sep
-               << setw(maxAccountDigits) << setfill('0') << right << fixed << setprecision(0) << newClient.account << left
-               << sep << accountType << sep << suspended << '\n';
+  (*clients).pushBack(newClient); // Added the Client Right After the Last One, and Increase the Counter of Occupied Indexes
 
-    clientsCSV.close();
+  ofstream clientsCSV(clientsFilename, ios::app); // Write to File
+  clientsCSV << newClient.id << sep << newClient.name << sep
+             << setw(maxAccountDigits) << setfill('0') << right << fixed << setprecision(0) << newClient.account << left
+             << sep << accountType << sep << suspended << '\n';
 
-    overwriteBalance(clients);
+  clientsCSV.close();
 
-    pressEnterToCont("Client Added Successfully!", false);
-  }
+  overwriteBalance(clients);
+
+  pressEnterToCont("Client Added Successfully!", false);
 }
 
 // Function to Sort Clients (Uses Merge Sort)

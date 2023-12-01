@@ -88,16 +88,15 @@ void removeClient(Clients *clients)
   {                                 // The Id hasn't been Added to that File
     assert(id >= 0 && index == -1); // Check Client Id and Index
     checkClientStatus(check);
+    return; // End this Function
   }
-  else
-  {
-    assert(id >= 0 && index >= 0);                      // Check Client Id and Index
-    printClientInfo((*clients).getClient(index), true); // Print Client Info
 
-    if (booleanQuestion("Is this the Client Account you want to Delete?"))
-      if (booleanQuestion("Are you 100% Sure?"))
-        deleteClient = true;
-  }
+  assert(id >= 0 && index >= 0);                      // Check Client Id and Index
+  printClientInfo((*clients).getClient(index), true); // Print Client Info
+
+  if (booleanQuestion("Is this the Client Account you want to Delete?"))
+    if (booleanQuestion("Are you 100% Sure?"))
+      deleteClient = true;
 
   if (deleteClient)
   {
@@ -305,22 +304,22 @@ void depositMoney(Clients *clients)
       break;
   }
 
-  if (check != clientNotFound && !suspended)
-  { // Check if the Client isn't Suspended
-    amount = getFloat("Enter the Amount to Deposit", minDeposit, maxDeposit);
-    assert(amount > 0); // Check if the Amount is Positive
+  if (check == clientNotFound || suspended) // Check if the Client isn't Suspended
+    return;                                 // End this Function
 
-    if (clientActionConfirm(clientDeposit)) // Asks the Client for Confirmation
-    {
-      message = "You Have Successfully Deposited $";
-      message.append(toStringWithPrecision(amount, precision));
+  amount = getFloat("Enter the Amount to Deposit", minDeposit, maxDeposit);
+  assert(amount > 0); // Check if the Amount is Positive
 
-      time = getCurrentTime();
+  if (clientActionConfirm(clientDeposit)) // Asks the Client for Confirmation
+  {
+    message = "You Have Successfully Deposited $";
+    message.append(toStringWithPrecision(amount, precision));
 
-      storeMovement(time, clientDeposit, clients, index, amount); // Save Deposit
+    time = getCurrentTime();
 
-      pressEnterToCont(message, false);
-    }
+    storeMovement(time, clientDeposit, clients, index, amount); // Save Deposit
+
+    pressEnterToCont(message, false);
   }
 }
 
@@ -329,7 +328,7 @@ void getBalance(Clients *clients)
 {
   clientStatus check;
   Client client;
-  int id, index;
+  int id = -1, index = -1;
   string message;
 
   cout << clear; // Clear Terminal
@@ -343,7 +342,7 @@ void getBalance(Clients *clients)
     if (check != clientFound)
     {
       checkClientStatus(check);
-      break;
+      return; // End this Function
     }
 
     assert(id >= 0 && index >= 0);        // Check Client Id and Index
@@ -354,15 +353,12 @@ void getBalance(Clients *clients)
       break;
   }
 
-  if (check == clientFound)
-  {
-    ostringstream stream;
+  ostringstream stream;
 
-    stream << "Balance: $" << client.balance;
-    assert(client.balance >= 0.0); // Check Client Balance
+  stream << "Balance: $" << client.balance;
+  assert(client.balance >= 0.0); // Check Client Balance
 
-    pressEnterToCont(stream.str(), (client.balance < warningBalance) ? true : false);
-  }
+  pressEnterToCont(stream.str(), (client.balance < warningBalance) ? true : false);
 }
 
 // Function for Clients to Cashout Money from their Accounts
@@ -371,7 +367,7 @@ void cashoutMoney(Clients *clients)
   bool suspended;
   clientStatus check;
   Client client;
-  int id, index;
+  int id = -1, index = -1;
   float amount;
   string time, message;
 
@@ -389,7 +385,7 @@ void cashoutMoney(Clients *clients)
     if (check != clientFound)
     {
       checkClientStatus(check);
-      break;
+      return;
     }
 
     assert(id >= 0 && index >= 0);        // Check Client Id and Index
@@ -400,25 +396,25 @@ void cashoutMoney(Clients *clients)
       break;
   }
 
-  if (check != clientNotFound && !suspended)
-  {                             // Check if the Client isn't Suspended
-    printClientBalance(client); // Print Client Balance
-    amount = getFloat("Enter the Amount to Cash Out", minDeposit, maxDeposit);
-    assert(amount > 0); // Check if the Amount is Positive
+  if (suspended) // Check if the Client isn't Suspended
+    return;      // End this Function
 
-    if ((*clients).getClient(index).balance < amount)
-      pressEnterToCont("Insufficient Funds", true);
-    else if (clientActionConfirm(clientCashout)) // Asks the Client for Confirmation
-    {
-      message = "You Have Successfully Cashed Out $";
-      message.append(toStringWithPrecision(amount, precision));
+  printClientBalance(client); // Print Client Balance
+  amount = getFloat("Enter the Amount to Cash Out", minDeposit, maxDeposit);
+  assert(amount > 0); // Check if the Amount is Positive
 
-      time = getCurrentTime();
+  if ((*clients).getClient(index).balance < amount)
+    pressEnterToCont("Insufficient Funds", true);
+  else if (clientActionConfirm(clientCashout)) // Asks the Client for Confirmation
+  {
+    message = "You Have Successfully Cashed Out $";
+    message.append(toStringWithPrecision(amount, precision));
 
-      storeMovement(time, clientCashout, clients, index, amount); // Save Cash Out
+    time = getCurrentTime();
 
-      pressEnterToCont(message, false);
-    }
+    storeMovement(time, clientCashout, clients, index, amount); // Save Cash Out
+
+    pressEnterToCont(message, false);
   }
 }
 
@@ -429,7 +425,7 @@ void sendMoney(Clients *clients)
   clientStatus check;
   Client clientFrom;
   float amount;
-  int idFrom, idTo, indexFrom, indexTo;
+  int idFrom = -1, idTo = -1, indexFrom = -1, indexTo = -1;
   string time, message;
 
   cout << clear; // Clear Terminal
@@ -446,7 +442,7 @@ void sendMoney(Clients *clients)
     if (check != clientFound)
     {
       checkClientStatus(check);
-      break;
+      return; // End this Function
     }
 
     assert(idFrom >= 0 && indexFrom >= 0);        // Check Client Id and Index
@@ -457,51 +453,48 @@ void sendMoney(Clients *clients)
       break;
   }
 
-  if (check != clientNotFound && !suspended)
-  { // Check if the Client isn't Suspended
-    while (true)
+  if (suspended) // Check if the Client isn't Suspended
+    return;      // End this Function
+
+  while (true)
+  {
+    check = getClientId(clients, &idTo, &indexTo, "Send to Client ID"); // Get Client Id and Check if it Exists
+    assert(check == clientNotFound || (idTo >= 0 && indexTo >= 0));     // Check Client Id and Index
+
+    if (check == clientNotFound)
     {
-      check = getClientId(clients, &idTo, &indexTo, "Send to Client ID"); // Get Client Id and Check if it Exists
-      assert(idTo >= 0 && indexTo >= 0);                                  // Check Client Id and Index
-
-      if (check == clientNotFound)
-      {
-        checkClientStatus(check);
-        break;
-      }
-      else if (idFrom == idTo) // Client Cannot Send to Himself
-      {
-        pressEnterToCont("Error: You Cannot Send to Yourself", false);
-        continue;
-      }
-
-      printClientInfo((*clients).getClient(indexTo), true); // Print Client Info
-
-      if (booleanQuestion("Is this the Account you Want to Send the Money to?"))
-        break;
+      checkClientStatus(check);
+      return; // End this Function
+    }
+    else if (idFrom == idTo) // Client Cannot Send to Himself
+    {
+      pressEnterToCont("Error: You Cannot Send to Yourself", false);
+      continue;
     }
 
-    if (check != clientNotFound)
-    {
-      printClientBalance(clientFrom); // Print Client Balance
-      amount = getFloat("Enter the Amount to Send", minDeposit, maxDeposit);
-      assert(amount > 0); // Check if the Amount is Positive
+    printClientInfo((*clients).getClient(indexTo), true); // Print Client Info
 
-      if (clientFrom.balance < amount)
-        pressEnterToCont("Insufficient Funds", true);
-      else if (clientActionConfirm(clientSend)) // Asks the Client for Confirmation
-      {
-        message = "You Have Successfully Sent $";
-        message.append(toStringWithPrecision(amount, precision));
+    if (booleanQuestion("Is this the Account you Want to Send the Money to?"))
+      break;
+  }
 
-        time = getCurrentTime();
+  printClientBalance(clientFrom); // Print Client Balance
+  amount = getFloat("Enter the Amount to Send", minDeposit, maxDeposit);
+  assert(amount > 0); // Check if the Amount is Positive
 
-        storeTransactions(time, idFrom, clientFrom.account, amount, idTo);    // Store Transaction
-        storeMovement(time, clientSend, clients, indexFrom, amount, indexTo); // Update Balances
+  if (clientFrom.balance < amount)
+    pressEnterToCont("Insufficient Funds", true);
+  else if (clientActionConfirm(clientSend)) // Asks the Client for Confirmation
+  {
+    message = "You Have Successfully Sent $";
+    message.append(toStringWithPrecision(amount, precision));
 
-        pressEnterToCont(message, false);
-      }
-    }
+    time = getCurrentTime();
+
+    storeTransactions(time, idFrom, clientFrom.account, amount, idTo);    // Store Transaction
+    storeMovement(time, clientSend, clients, indexFrom, amount, indexTo); // Update Balances
+
+    pressEnterToCont(message, false);
   }
 }
 
