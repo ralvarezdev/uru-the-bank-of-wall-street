@@ -86,12 +86,12 @@ void removeClient(Clients *clients)
 
   if (check == clientNotFound)
   {                                 // The Id hasn't been Added to that File
-    assert(id >= 0 && index == -1); // Check Client Id and Index
+    assert(id > 0 && index == -1); // Check Client Id and Index
     checkClientStatus(check);
     return; // End this Function
   }
 
-  assert(id >= 0 && index >= 0);                      // Check Client Id and Index
+  assert(id > 0 && index >= 0);                      // Check Client Id and Index
   printClientInfo((*clients).getClient(index), true); // Print Client Info
 
   if (booleanQuestion("Is this the Client Account you want to Delete?"))
@@ -112,7 +112,7 @@ void removeClient(Clients *clients)
 // Function to View Clients Stored in clients.csv
 void viewClients(Clients *clients, bool fields[], int sortBy[])
 {
-  int l, m = fieldEnd - 1, n = sortByEnd / 2;
+  int l, m = fieldEnd - 1, n = fieldEnd - 1;
   string fieldsStr[m], sortByStr[n], applied;
 
   assert(m > 0 && n > 0); // Check Variables
@@ -145,13 +145,13 @@ void viewClients(Clients *clients, bool fields[], int sortBy[])
 
   pressEnterToCont("Press ENTER to Continue", false);
 
-  clientsMergeSort(clients, sortByIdA); // Return Clients Array to Initial Order
+  clientsMergeSort(clients, fieldId * 2); // Return Clients Array to Initial Order
 }
 
 // Function to Filter Clients
 void filterClients(Clients *clients, string **params, int sortBy[])
 {
-  int l = fieldEnd - 1, m = maxParamPerSubCmd, n = sortByEnd / 2;
+  int l = fieldEnd - 1, m = maxParamPerSubCmd, n = fieldEnd - 1;
   bool fields[l];
   string sortByStr[n];
 
@@ -219,7 +219,7 @@ void sortByParameters()
 
   cout << clear; // Clear Terminal
   printTitle("Sort By Parameters", applyBgColor, applyFgColor, false);
-  for (int i = 0; i < sortByEnd / 2; i++)
+  for (int i = 0; i < fieldEnd - 1; i++)
   {
     ascending = addBrackets(fieldCmdsChar[i]).append(" Ascending");
     descending = addBrackets(toupper(fieldCmdsChar[i])).append(" Descending");
@@ -297,7 +297,7 @@ void depositMoney(Clients *clients)
       break;
     }
 
-    assert(id >= 0 && index >= 0);                      // Check Client Id and Index
+    assert(id > 0 && index >= 0);                      // Check Client Id and Index
     printClientInfo((*clients).getClient(index), true); // Print Client Info
 
     if (booleanQuestion("Is this your Client Account?"))
@@ -345,7 +345,7 @@ void getBalance(Clients *clients)
       return; // End this Function
     }
 
-    assert(id >= 0 && index >= 0);        // Check Client Id and Index
+    assert(id > 0 && index >= 0);        // Check Client Id and Index
     client = (*clients).getClient(index); // Get Client
     printClientInfo(client, true);        // Print Client Info
 
@@ -388,7 +388,7 @@ void cashoutMoney(Clients *clients)
       return;
     }
 
-    assert(id >= 0 && index >= 0);        // Check Client Id and Index
+    assert(id >0 && index >= 0);        // Check Client Id and Index
     client = (*clients).getClient(index); // Get Client
     printClientInfo(client, true);        // Print Client Info
 
@@ -445,7 +445,7 @@ void sendMoney(Clients *clients)
       return; // End this Function
     }
 
-    assert(idFrom >= 0 && indexFrom >= 0);        // Check Client Id and Index
+    assert(idFrom > 0 && indexFrom >= 0);        // Check Client Id and Index
     clientFrom = (*clients).getClient(indexFrom); // Get Client
     printClientInfo(clientFrom, true);            // Print Client Info
 
@@ -459,7 +459,7 @@ void sendMoney(Clients *clients)
   while (true)
   {
     check = getClientId(clients, &idTo, &indexTo, "Send to Client ID"); // Get Client Id and Check if it Exists
-    assert(check == clientNotFound || (idTo >= 0 && indexTo >= 0));     // Check Client Id and Index
+    assert(check == clientNotFound || (idTo >0 && indexTo >= 0));     // Check Client Id and Index
 
     if (check == clientNotFound)
     {
@@ -517,7 +517,7 @@ void changeStatus(Clients *clients)
     checkClientStatus(clientStatus);
   else if (clientStatus != errorStatus)
   {
-    assert(id >= 0 && index >= 0); // Check Client Id and Index
+    assert(id > 0 && index >= 0); // Check Client Id and Index
 
     if (clientStatus == clientSuspended) // Ask wether to Suspend or Active Account
       change = booleanQuestion("Do you want to Activate the Client?");
@@ -568,7 +568,7 @@ int getSortByStr(int sortBy[], string sortByStr[], int n)
   for (int j = 0; j < n; j++)
   {
     charIndex = sortBy[j];
-    assert(charIndex == -1 || charIndex >= 0 && charIndex < sortByEnd); // Check Sort By Index
+    assert(charIndex == -1 || charIndex >= 0 && charIndex < (fieldEnd - 1) * 2); // Check Sort By Index
     nullParam = false;
 
     if (charIndex == -1)

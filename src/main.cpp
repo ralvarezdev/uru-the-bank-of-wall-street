@@ -155,7 +155,7 @@ int main(int argc, char **argv)
     {                                                         // Checks if the View Clients or Filter Clients Command is Typed Correctly
       bool isViewClientsCmd = (index.main == cmdViewClients); // Boolean to Check if the Current Command is View Clients
 
-      int nSortBy = sortByEnd / 2;
+      int nSortBy = fieldEnd - 1;
       assert(nSortBy > 0); // Check if Enum sortByEnd is Greater than 0
 
       int sortByOrder[nSortBy], sortByCounter = 0; // Save Sorting Order
@@ -208,14 +208,15 @@ int main(int argc, char **argv)
 
               // Check if the Command is in the Sort By Array
               cmd.param = inputWord[0];
-              index.param = isCharOnArray(tolower(cmd.param), fieldCmdsChar, fieldEnd) * 2;
-
-              // If the Character is Uppercase, Increase the Index by One to Match with the Descending Order Command Index
-              if (isupper(cmd.param))
-                index.param++;
+              index.param = isCharOnArray(tolower(cmd.param), fieldCmdsChar, fieldEnd);
 
               if (index.param == -1 || index.param == fieldAll) // Wrong Sort By Command Parameter
                 throw(wrongSortByParam);
+
+              // If the Character is Uppercase, Increase the Index by One to Match with the Descending Order Command Index
+              index.param *= 2;
+              if (isupper(cmd.param))
+                index.param++;
               sortByCounter++;
 
               if (isViewClientsCmd)

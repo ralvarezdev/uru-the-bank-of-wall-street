@@ -59,26 +59,6 @@ namespace clients
     fieldEnd // To get the number of Fields. SHOULD BE AT THE END
   };
 
-  // - Sort By Commands
-  // A: Ascending
-  // D: Descending
-  enum sortByCmds
-  {
-    sortByIdA,
-    sortByIdD,
-    sortByNameA,
-    sortByNameD,
-    sortByTypeA,
-    sortByTypeD,
-    sortBySuspendedA,
-    sortBySuspendedD,
-    sortByAccountA,
-    sortByAccountD,
-    sortByBalanceA,
-    sortByBalanceD,
-    sortByEnd // To get the number of Sort By Commands. SHOULD BE AT THE END
-  };
-
   // - Invalid Client Data
   enum invalidClient
   {
@@ -229,11 +209,14 @@ namespace clients
       case fieldCmds::fieldName:
         isI = (this->array[*i].name.compare(this->array[*j].name) < 0);
         break;
-      case fieldCmds::fieldAccountNumber:
-        isI = (this->array[*i].account < this->array[*j].account);
-        break;
       case fieldCmds::fieldAccountType:
         isI = (this->array[*i].type < this->array[*j].type);
+        break;
+      case fieldCmds::fieldAccountStatus:
+        isI = (this->array[*i].suspended < this->array[*j].suspended);
+        break;
+      case fieldCmds::fieldAccountNumber:
+        isI = (this->array[*i].account < this->array[*j].account);
         break;
       case fieldCmds::fieldBalance:
         isI = (this->array[*i].balance < this->array[*j].balance);
@@ -317,8 +300,8 @@ namespace commands
   // - View Clients Command Parameters Structure
   struct ViewClientsCmd
   {
-    bool params[clients::fieldEnd];     // 1D Array to Save the Fields to Show in View Clients
-    int sortBy[clients::sortByEnd / 2]; // For a Field, only Allowed Ascending or Descending Order, not Both at the Same Time
+    bool params[clients::fieldEnd];    // 1D Array to Save the Fields to Show in View Clients
+    int sortBy[clients::fieldEnd - 1]; // For a Field, only Allowed Ascending or Descending Order, not Both at the Same Time
   };
 
   // - Filter Clients Command Parameters Structure
@@ -327,7 +310,7 @@ namespace commands
     string params[clients::fieldEnd][maxParamPerSubCmd]; // 2D String Array of Clients Parameters
     string *paramsPtr[clients::fieldEnd];                // 1D Pointer Array to to the 2D Array
     int counter[clients::fieldEnd];
-    int sortBy[clients::sortByEnd / 2]; // For a Field, only Allowed Ascending or Descending Order, not Both at the Same Time
+    int sortBy[clients::fieldEnd - 1]; // For a Field, only Allowed Ascending or Descending Order, not Both at the Same Time
   };
 
   // - Command Structure

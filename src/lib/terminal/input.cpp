@@ -57,9 +57,11 @@ bool booleanQuestion(string message)
       return false;
     }
     else
+    {
+      assert(c != 'y' && c != 'n'); // c Must be Different from Y or N
       wrongCommand(wrongBooleanAnswer);
+    }
   }
-  assert(c != 'y' && c != 'n'); // Function Must Not Get to this Assert
 }
 
 // Function to Check if the Command Entered by the User is Correct

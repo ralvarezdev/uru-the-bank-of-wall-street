@@ -29,10 +29,8 @@ clientStatus checkClient(Clients *clients, T unique, fieldCmds field, int *index
 {
   if (field != fieldId && field != fieldAccountNumber)
     return errorStatus;
-  else if (field == fieldId)
-    clientsMergeSort(clients, sortByIdA); // Sort Clients by Id
-  else if (field == fieldAccountNumber)
-    clientsMergeSort(clients, sortByAccountA); // Sort Clients by Account Number
+  else
+    clientsMergeSort(clients, field * 2); // Sort Clients by Id or by Account Number
 
   Client client;
 
