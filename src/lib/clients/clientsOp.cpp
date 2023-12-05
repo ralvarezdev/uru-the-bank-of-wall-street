@@ -40,7 +40,7 @@ clientStatus getClientId(Clients *clients, int *id, int *index, string message);
 void getClients(Clients *clients)
 {
   Client client;
-  int id, nClients, clientCounter = 0, count = 0;
+  int id, nClients, count;
   float balance;
   string line, word;
 
@@ -96,7 +96,7 @@ void getClients(Clients *clients)
 #endif
 
       (*clients).pushBack(newClient);
-      assert(nClients == (*clients).getNumberClients() - 1); // Check if the Number of Clients Gets Increased
+      assert(nClients == (*clients).getNumberClients() - 1); // Checks if the Number of Clients Gets Increased
     }
     catch (...)
     {
@@ -132,12 +132,12 @@ void getClients(Clients *clients)
         count++;
       }
 
-      for (; clientCounter < nClients; clientCounter++)
+      for (int clientsCounter = 0; clientsCounter < nClients; clientsCounter++)
       {
-        client = (*clients).getClient(clientCounter); // Get Client
+        client = (*clients).getClient(clientsCounter); // Get Client
 
         if (client.id == id)
-          (*clients).updateBalance(clientCounter, balance); // Update Client Balance
+          (*clients).updateBalance(clientsCounter, balance); // Update Client Balance
         else
           continue; // To Prevent Wrong Client Balance Assignment if balance.csv was Manipulated
 
@@ -213,8 +213,8 @@ void filterClients(Clients *clients, string **params, bool fields[], int sortBy[
 
   for (int field = 0; field < fieldEnd - 1; field++)
   {
-    // Check if the Function can Filter that Field, and if there are Parameters
-    if (validFieldsToFilter[field] && params[field][0] == "null")
+    // Check if the Function can Filter that Field
+    if (!validFieldsToFilter[field])
       continue;
 
     for (int param = 0; param < maxParamPerSubCmd && params[field][param] != "null"; param++)
@@ -291,12 +291,12 @@ void addClientToFile(Clients *clients)
 
   if (check != clientNotFound) // The Id has been Added to that File
   {
-    assert(id >0 && index == -1); // Check Client Id and Index
+    assert(id > 0 && index >= 0); // Check Client Id and Index
     wrongClientData(clientExists);
     return; // End this Function
   }
 
-  assert(id > 0 && index >= 0); // Check Client Id and Index
+  assert(id > 0 && index == -1); // Check Client Id and Index
   newClient.id = id;             // Assign Client Id
 
   cout << "Name: "; // Get Client Name

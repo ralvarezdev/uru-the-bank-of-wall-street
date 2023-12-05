@@ -16,6 +16,16 @@ using namespace commands;
 #ifndef INPUT_H
 #define INPUT_H
 
+// --- Functions
+// void ignoreInput();
+bool booleanQuestion(string message);
+void wrongCommand(cmdStatus cmdStatus);
+void wrongClientData(invalidClient wrongData);
+void checkClientStatus(clientStatus clientStatus);
+void pressEnterToCont(string message, bool warning = false);
+string getLower(string word);
+float getFloat(string message, float low, float high);
+
 // --- Templates
 
 // Template to Convert Float to String with a Set Precision of N Digits
@@ -51,15 +61,5 @@ string getLastDigits(T number, int numberDigits)
 
   return lastDigits;
 }
-
-// --- Functions
-// void ignoreInput();
-bool booleanQuestion(string message);
-void wrongCommand(cmdStatus cmdStatus);
-void wrongClientData(invalidClient wrongData);
-void checkClientStatus(clientStatus clientStatus);
-void pressEnterToCont(string message, bool warning = false);
-string getLower(string word);
-float getFloat(string message, float low, float high);
 
 #endif

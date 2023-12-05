@@ -171,8 +171,8 @@ int main(int argc, char **argv)
         filterClientsCmd = FilterClientsCmd();
         for (int i = 0; i < fieldEnd - 1; i++) // Initialize Params to Filter Array
           fill(filterClientsCmd.params[i], filterClientsCmd.params[i] + maxParamPerSubCmd, "null");
-        initPtrArray(filterClientsCmd.paramsPtr, filterClientsCmd.params, filterClientsCmd.counter, fieldEnd); // Copy Array to Pointer Array
-        fill(filterClientsCmd.sortBy, filterClientsCmd.sortBy + nSortBy, -1);                                  // Initialize Sort By Array
+        initPtrArray(filterClientsCmd.paramsPtr, filterClientsCmd.params, filterClientsCmd.counter, fieldEnd - 1); // Copy Array to Pointer Array
+        fill(filterClientsCmd.sortBy, filterClientsCmd.sortBy + nSortBy, -1);                                      // Initialize Sort By Array
       }
 
       try
@@ -208,9 +208,9 @@ int main(int argc, char **argv)
 
               // Check if the Command is in the Sort By Array
               cmd.param = inputWord[0];
-              index.param = isCharOnArray(tolower(cmd.param), fieldCmdsChar, fieldEnd);
+              index.param = isCharOnArray(tolower(cmd.param), fieldCmdsChar, fieldEnd - 1);
 
-              if (index.param == -1 || index.param == fieldAll) // Wrong Sort By Command Parameter
+              if (index.param == -1) // Wrong Sort By Command Parameter
                 throw(wrongSortByParam);
 
               // If the Character is Uppercase, Increase the Index by One to Match with the Descending Order Command Index
@@ -241,7 +241,7 @@ int main(int argc, char **argv)
             cmd.field = (isViewClientsCmd) ? inputWord[0] : inputWord[2];
             index.field = isCharOnArray(cmd.field, fieldCmdsChar, fieldEnd); // Check if the Command is in the Field Parameters Array
 
-            if (index.field == -1 || (!isViewClientsCmd && (index.field == fieldAll || !validFieldsToFilter[index.field]))) // Wrong Field Parameter or Field Command
+            if (index.field == -1 || (!isViewClientsCmd && !validFieldsToFilter[index.field])) // Wrong Field Parameter or Field Command
               throw((isViewClientsCmd) ? wrongFieldParam : wrongField);
 
             if (isViewClientsCmd)
@@ -277,9 +277,8 @@ int main(int argc, char **argv)
                 if (!getline(stream, inputLong, '"'))
                   throw(wrongFilterClientsCmd); // Incomplete Long Parameter
 
-                inputWord.insert(inputWord.length(), 1, ' ');                 // Insert Whitespace at the End
-                inputLong.insert(0, inputWord.substr(1, inputWord.length())); // Remove Double Quote
-                inputWord = inputLong;
+                inputWord.insert(inputWord.length(), 1, ' ');                             // Insert Whitespace at the End
+                inputLong = inputWord.insert(0, inputWord.substr(1, inputWord.length())); // Remove Double Quote
               }
 
               try
@@ -315,11 +314,15 @@ int main(int argc, char **argv)
         }
 
         for (int i = 0; i < nSortBy; i++) // Save the Sort By Array based on the Order they were Introduced
-          if (sortByOrder[i] != -1)
-            if (isViewClientsCmd)
-              viewClientsCmd.sortBy[i] = sortByOrder[i];
-            else
-              filterClientsCmd.sortBy[i] = sortByOrder[i];
+        {
+          if (sortByOrder[i] == -1)
+            continue;
+
+          if (isViewClientsCmd)
+            viewClientsCmd.sortBy[i] = sortByOrder[i];
+          else
+            filterClientsCmd.sortBy[i] = sortByOrder[i];
+        }
 
         if (fieldsCounter == 0)
           throw((isViewClientsCmd) ? wrongField : wrongFieldParam);
@@ -502,7 +505,7 @@ int fieldCmdsChar[fieldEnd] = { // Field Commands
     [fieldBalance] = 'b',
     [fieldAll] = '.'};
 
-char *fieldCmdsStr[fieldEnd] = { // Field Names
+char *fieldCmdsStr[fieldEnd - 1] = { // Field Names
     [fieldId] = "Id",
     [fieldName] = "Client Name",
     [fieldAccountType] = "Account Type",
@@ -516,7 +519,8 @@ bool validFieldsToFilter[fieldEnd] = { // Fields that can be Used in Filter Clie
     [fieldAccountType] = false,
     [fieldAccountStatus] = false,
     [fieldAccountNumber] = true,
-    [fieldBalance] = false};
+    [fieldBalance] = false,
+    [fieldAll] = false};
 
 char *accountStr[accountEnd] = { // Account Types
     [accountCurrent] = "current",

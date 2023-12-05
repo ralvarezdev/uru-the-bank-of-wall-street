@@ -152,7 +152,7 @@ float getFloat(string message, float low, float high)
   float amount;
 
   while (true)
-    try // Get Floats
+    try // Get Float
     {
       cout << message << " : ";
       getline(cin, temp);
@@ -170,7 +170,6 @@ float getFloat(string message, float low, float high)
 
       pressEnterToCont(stream.str(), true);
     }
-  assert(stof(temp) == -1); // Function Must Not Get to this Assert
 }
 
 // Function to Get a Lowercase String
