@@ -85,13 +85,13 @@ void removeClient(Clients *clients)
   check = getClientId(clients, &id, &index, "ID");
 
   if (check == clientNotFound)
-  {                                 // The Id hasn't been Added to that File
+  {                                // The Id hasn't been Added to that File
     assert(id > 0 && index == -1); // Check Client Id and Index
     checkClientStatus(check);
     return; // End this Function
   }
 
-  assert(id > 0 && index >= 0);                      // Check Client Id and Index
+  assert(id > 0 && index >= 0);                       // Check Client Id and Index
   printClientInfo((*clients).getClient(index), true); // Print Client Info
 
   if (booleanQuestion("Is this the Client Account you want to Delete?"))
@@ -154,8 +154,6 @@ void filterClients(Clients *clients, string **params, int sortBy[])
   int l = fieldEnd - 1, m = maxParamPerSubCmd, n = fieldEnd - 1;
   bool fields[l];
   string sortByStr[n];
-
-  assert(l > 0 && m > 0); // Check Variables
 
   fill(fields, fields + l, true); // Client Fields to Print (All)
   n = getSortByStr(sortBy, sortByStr, n);
@@ -297,7 +295,7 @@ void depositMoney(Clients *clients)
       break;
     }
 
-    assert(id > 0 && index >= 0);                      // Check Client Id and Index
+    assert(id > 0 && index >= 0);                       // Check Client Id and Index
     printClientInfo((*clients).getClient(index), true); // Print Client Info
 
     if (booleanQuestion("Is this your Client Account?"))
@@ -345,7 +343,7 @@ void getBalance(Clients *clients)
       return; // End this Function
     }
 
-    assert(id > 0 && index >= 0);        // Check Client Id and Index
+    assert(id > 0 && index >= 0);         // Check Client Id and Index
     client = (*clients).getClient(index); // Get Client
     printClientInfo(client, true);        // Print Client Info
 
@@ -388,7 +386,7 @@ void cashoutMoney(Clients *clients)
       return;
     }
 
-    assert(id >0 && index >= 0);        // Check Client Id and Index
+    assert(id > 0 && index >= 0);         // Check Client Id and Index
     client = (*clients).getClient(index); // Get Client
     printClientInfo(client, true);        // Print Client Info
 
@@ -445,7 +443,7 @@ void sendMoney(Clients *clients)
       return; // End this Function
     }
 
-    assert(idFrom > 0 && indexFrom >= 0);        // Check Client Id and Index
+    assert(idFrom > 0 && indexFrom >= 0);         // Check Client Id and Index
     clientFrom = (*clients).getClient(indexFrom); // Get Client
     printClientInfo(clientFrom, true);            // Print Client Info
 
@@ -459,7 +457,7 @@ void sendMoney(Clients *clients)
   while (true)
   {
     check = getClientId(clients, &idTo, &indexTo, "Send to Client ID"); // Get Client Id and Check if it Exists
-    assert(check == clientNotFound || (idTo >0 && indexTo >= 0));     // Check Client Id and Index
+    assert(check == clientNotFound || (idTo > 0 && indexTo >= 0));      // Check Client Id and Index
 
     if (check == clientNotFound)
     {
