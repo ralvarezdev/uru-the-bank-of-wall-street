@@ -30,7 +30,7 @@ void storeMovement(string time, clientActions action, Clients *clients, int inde
 
   ofstream movementsCSV(movementsFilename, ios::app);
 
-  // Client Id, Account Number, Action, Amount, Time when the Transaction was Done
+  // Client ID, Account Number, Action, Amount, Time when the Transaction was Done
   movementsCSV << clientFrom.id << sep // Write to File at Last Line
                << setw(maxAccountDigits) << setfill('0') << fixed << setprecision(0) << clientFrom.account
                << sep << actionsStr[action]
@@ -68,7 +68,7 @@ void storeTransactions(string time, int clientIdFrom, double accountFrom, float 
 {
   ofstream transactionsCSV(transactionsFilename, ios::app);
 
-  // Client Id that Sends the Money, Account Number, Amount, Account that Receives the Money, Time when the Transaction was Done
+  // Client ID that Sends the Money, Account Number, Amount, Account that Receives the Money, Time when the Transaction was Done
   transactionsCSV << clientIdFrom << sep // Write to File at Last Line
                   << setw(maxAccountDigits) << setfill('0') << fixed << setprecision(0) << accountFrom
                   << sep << amount
@@ -81,7 +81,7 @@ void storeTransactions(string time, int clientIdFrom, double accountFrom, float 
 void deleteClientHistory(Clients *clients, int clientId)
 {
   string line, word;
-  int tempId, count;
+  int tempId, count, movementsCounter = 0, transactionsCounter = 0;
 
   ostringstream movements, transactions;
   ifstream ifmovementsCSV(movementsFilename), iftransactionsCSV(transactionsFilename);
@@ -121,6 +121,7 @@ void deleteClientHistory(Clients *clients, int clientId)
         count++;
       }
       movements << '\n';
+      movementsCounter++;
     }
     catch (...)
     {
@@ -167,6 +168,7 @@ void deleteClientHistory(Clients *clients, int clientId)
         count++;
       }
       transactions << '\n';
+      transactionsCounter++;
     }
     catch (...)
     {
@@ -176,7 +178,8 @@ void deleteClientHistory(Clients *clients, int clientId)
 
   ofstream ofmovementsCSV(movementsFilename), oftransactionsCSV(transactionsFilename);
 
-  assert(movements.str().length() > 0 && transactions.str().length() > 0); // Check if the File Content Could be Added to the Streams
+  assert(movementsCounter == 0 || movements.str().length() > 0); // Check if the File Content Could be Added to the Streams
+  assert(transactionsCounter == 0 || transactions.str().length() > 0);
 
   ofmovementsCSV << movements.str(); // Write Movements Stream Content to movements.csv
   ofmovementsCSV.close();

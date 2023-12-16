@@ -129,7 +129,7 @@ void printClientInfo(Client client, bool censoreInfo)
   cout << '\n';
   printTitle("Client Info", applyBgColor, applyFgColor, false);
 
-  cout << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldId] << client.id << '\n'; // Print Client Id
+  cout << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldId] << client.id << '\n'; // Print Client ID
 
   cout << setw(nCharField) << setfill(' ') << fieldCmdsStr[fieldName]; // Print Client Name
   if (client.name.length() < nCharContent)
@@ -158,7 +158,7 @@ void printClientBalance(Client client)
 // Function to Print Clients
 void printClients(Clients *clients, bool *fields)
 {
-  const int nId = 15;            // Number of Characters for Id
+  const int nId = 15;            // Number of Characters for ID
   const int nAccountType = 15;   // ... for Account Type
   const int nSuspended = 18;     // ... for Suspended Status
   const int nAccountNumber = 20; // ... for Account Number
@@ -189,7 +189,7 @@ void printClients(Clients *clients, bool *fields)
   {
     client = (*clients).getClient(i); // Get Client
 
-    if (fields[fieldId]) // Client Id
+    if (fields[fieldId]) // Client ID
       cout << setw(nId) << setfill(' ') << client.id;
 
     if (fields[fieldName]) // Client Title

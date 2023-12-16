@@ -242,7 +242,7 @@ namespace clients
   const string transactionsFilename = "transactions.csv"; // Transactions Filename (STORES TRANSACTIONS BETWEEN CLIENTS)
   const string movementsFilename = "movements.csv";       // Clients Movements Filename (STORES DEPOSITS, CASHOUTS AND TRANSACTIONS)
   const string balanceFilename = "balance.csv";           // Clients Balance Filename
-  const string deletedClient = "del";                     // Stirng that will Substitute Id of Deleted Clients
+  const string deletedClient = "del";                     // Stirng that will Substitute ID of Deleted Clients
   const int precision = 2;                                // Precision for Floats and Doubles
   const int maxAccountDigits = 10;                        // Maximum Number of Digits for Account Number
   const int warningBalance = 1000;                        // Client Balance will be Printed with the Warning Text Format

@@ -85,13 +85,13 @@ void removeClient(Clients *clients)
   check = getClientId(clients, &id, &index, "ID");
 
   if (check == clientNotFound)
-  {                                // The Id hasn't been Added to that File
-    assert(id > 0 && index == -1); // Check Client Id and Index
+  {                                // The ID hasn't been Added to that File
+    assert(id > 0 && index == -1); // Check Client ID and Index
     checkClientStatus(check);
     return; // End this Function
   }
 
-  assert(id > 0 && index >= 0);                       // Check Client Id and Index
+  assert(id > 0 && index >= 0);                       // Check Client ID and Index
   printClientInfo((*clients).getClient(index), true); // Print Client Info
 
   if (booleanQuestion("Is this the Client Account you want to Delete?"))
@@ -237,9 +237,9 @@ void howToUseViewClients()
   const int nCmds = 3; // Number of Code Examples
 
   cmdExplanation examples[nCmds] = {
-      cmdExplanation{"v -f . -s i", "View All Client Fields. Sort them by Id in Ascending Order"},
-      cmdExplanation{"v -f i n -s I", "View Id and Client Name Field. Sort them by Id in Descending Order"},
-      cmdExplanation{"v -f i t -s S", "View Id and Account Type Fields. Sort them by Suspended Status in Descending Order"}};
+      cmdExplanation{"v -f . -s i", "View All Client Fields. Sort them by ID in Ascending Order"},
+      cmdExplanation{"v -f i n -s I", "View ID and Client Name Field. Sort them by ID in Descending Order"},
+      cmdExplanation{"v -f i t -s S", "View ID and Account Type Fields. Sort them by Suspended Status in Descending Order"}};
 
   printExamples(examples, nCmds);
 
@@ -254,11 +254,11 @@ void howToUseFilterClients()
 
   cmdExplanation examples[nCmds] = {
       cmdExplanation{
-          "f -f --n Ramon Ronald -s i", "Search for Clients Named as Ramon or Ronald. Sort them by Id in Ascending Order"},
+          "f -f --n Ramon Ronald -s i", "Search for Clients Named as Ramon or Ronald. Sort them by ID in Ascending Order"},
       cmdExplanation{
-          "f -f --n \"Ramon Alvarez\" \"Ronald Lopez\" -s I", "Search for Clients Named as Ramon Alvarez or Ronald Lopez. Sort them by Id in Descending Order"},
+          "f -f --n \"Ramon Alvarez\" \"Ronald Lopez\" -s I", "Search for Clients Named as Ramon Alvarez or Ronald Lopez. Sort them by ID in Descending Order"},
       cmdExplanation{
-          "f -f --n Ronald --i 123456789 -s a", "Search for Clients Named as Ronald and the Client with Id 123456789. Sort them by Account Number"},
+          "f -f --n Ronald --i 123456789 -s a", "Search for Clients Named as Ronald and the Client with ID 123456789. Sort them by Account Number"},
       cmdExplanation{
           "f -f --n Ramon --a 100200300 -s N", "Search for Clients Named as Ramon and the Client with Account Number 100200300. Sort them by Name in Descending Order"}};
 
@@ -284,7 +284,7 @@ void depositMoney(Clients *clients)
 
   while (true)
   {
-    check = getClientId(clients, &id, &index, "Client ID"); // Get Client Id and Check if it Exists
+    check = getClientId(clients, &id, &index, "Client ID"); // Get Client ID and Check if it Exists
 
     if (check == clientSuspended) // The Client Cannot Deposit Money while his Account is Suspended
       suspended = true;
@@ -295,7 +295,7 @@ void depositMoney(Clients *clients)
       break;
     }
 
-    assert(id > 0 && index >= 0);                       // Check Client Id and Index
+    assert(id > 0 && index >= 0);                       // Check Client ID and Index
     printClientInfo((*clients).getClient(index), true); // Print Client Info
 
     if (booleanQuestion("Is this your Client Account?"))
@@ -335,7 +335,7 @@ void getBalance(Clients *clients)
 
   while (true)
   {
-    check = getClientId(clients, &id, &index, "Client ID"); // Get Client Id and Check if it Exists
+    check = getClientId(clients, &id, &index, "Client ID"); // Get Client ID and Check if it Exists
 
     if (check != clientFound)
     {
@@ -343,7 +343,7 @@ void getBalance(Clients *clients)
       return; // End this Function
     }
 
-    assert(id > 0 && index >= 0);         // Check Client Id and Index
+    assert(id > 0 && index >= 0);         // Check Client ID and Index
     client = (*clients).getClient(index); // Get Client
     printClientInfo(client, true);        // Print Client Info
 
@@ -375,7 +375,7 @@ void cashoutMoney(Clients *clients)
 
   while (true)
   {
-    check = getClientId(clients, &id, &index, "Client ID"); // Get Client Id and Check if it Exists
+    check = getClientId(clients, &id, &index, "Client ID"); // Get Client ID and Check if it Exists
 
     if (check == clientSuspended) // The Client Cannot Cash Out Money while his Account is Suspended
       suspended = true;
@@ -386,7 +386,7 @@ void cashoutMoney(Clients *clients)
       return;
     }
 
-    assert(id > 0 && index >= 0);         // Check Client Id and Index
+    assert(id > 0 && index >= 0);         // Check Client ID and Index
     client = (*clients).getClient(index); // Get Client
     printClientInfo(client, true);        // Print Client Info
 
@@ -432,7 +432,7 @@ void sendMoney(Clients *clients)
 
   while (true)
   {
-    check = getClientId(clients, &idFrom, &indexFrom, "Client ID"); // Get Client Id and Check if it Exists
+    check = getClientId(clients, &idFrom, &indexFrom, "Client ID"); // Get Client ID and Check if it Exists
 
     if (check == clientSuspended) // The Client Cannot Send Money while his Account is Suspended
       suspended = true;
@@ -443,7 +443,7 @@ void sendMoney(Clients *clients)
       return; // End this Function
     }
 
-    assert(idFrom > 0 && indexFrom >= 0);         // Check Client Id and Index
+    assert(idFrom > 0 && indexFrom >= 0);         // Check Client ID and Index
     clientFrom = (*clients).getClient(indexFrom); // Get Client
     printClientInfo(clientFrom, true);            // Print Client Info
 
@@ -456,8 +456,8 @@ void sendMoney(Clients *clients)
 
   while (true)
   {
-    check = getClientId(clients, &idTo, &indexTo, "Send to Client ID"); // Get Client Id and Check if it Exists
-    assert(check == clientNotFound || (idTo > 0 && indexTo >= 0));      // Check Client Id and Index
+    check = getClientId(clients, &idTo, &indexTo, "Send to Client ID"); // Get Client ID and Check if it Exists
+    assert(check == clientNotFound || (idTo > 0 && indexTo >= 0));      // Check Client ID and Index
 
     if (check == clientNotFound)
     {
@@ -509,13 +509,13 @@ void changeStatus(Clients *clients)
   printTitle("Change Account Status", applyBgColor, applyFgColor, false); // Examples of the Usage of the Search Command
   cout << '\n';
 
-  clientStatus = getClientId(clients, &id, &index, "Client ID to Change Status"); // Get Client Id and Check if it Exists
+  clientStatus = getClientId(clients, &id, &index, "Client ID to Change Status"); // Get Client ID and Check if it Exists
 
   if (clientStatus == clientNotFound)
     checkClientStatus(clientStatus);
   else if (clientStatus != errorStatus)
   {
-    assert(id > 0 && index >= 0); // Check Client Id and Index
+    assert(id > 0 && index >= 0); // Check Client ID and Index
 
     if (clientStatus == clientSuspended) // Ask wether to Suspend or Active Account
       change = booleanQuestion("Do you want to Activate the Client?");

@@ -105,7 +105,7 @@ void getClients(Clients *clients)
   clientsCSV.close();
 
   ifstream balanceCSV(balanceFilename);
-  clientsMergeSort(clients, fieldId * 2); // Sort Clients by Id
+  clientsMergeSort(clients, fieldId * 2); // Sort Clients by ID
 
   nClients = (*clients).getNumberClients();
   while (getline(balanceCSV, line)) // Get Clients Balance
@@ -116,7 +116,7 @@ void getClients(Clients *clients)
 
       stringstream file(line);
 
-      count = 0;
+      balance = count = 0;
       while (getline(file, word, sep))
       {
         if (word.length() != 0)
@@ -132,14 +132,14 @@ void getClients(Clients *clients)
         count++;
       }
 
-      for (int clientsCounter = 0; clientsCounter < nClients; clientsCounter++)
+      for (int i = 0; i < nClients; i++)
       {
-        client = (*clients).getClient(clientsCounter); // Get Client
+        client = (*clients).getClient(i); // Get Client
 
-        if (client.id == id)
-          (*clients).updateBalance(clientsCounter, balance); // Update Client Balance
-        else
+        if (client.id != id)
           continue; // To Prevent Wrong Client Balance Assignment if balance.csv was Manipulated
+        else
+          (*clients).updateBalance(i, balance); // Update Client Balance
 
         break;
       }
@@ -186,7 +186,7 @@ void overwriteBalance(Clients *clients)
   ostringstream content;
   ofstream balanceCSV(balanceFilename);
 
-  clientsMergeSort(clients, fieldId * 2); // Sort Clients by Id
+  clientsMergeSort(clients, fieldId * 2); // Sort Clients by ID
   for (int i = 0; i < (*clients).getNumberClients(); i++)
   {
     client = (*clients).getClient(i); // Get Client
@@ -243,7 +243,7 @@ void filterClients(Clients *clients, string **params, bool fields[], int sortBy[
       {
         nameLower = getLower(params[field][param]); // Get Client Name To Search for in Lowercase
 
-        clientsMergeSort(clients, fieldId * 2); // Sort Clients by Id
+        clientsMergeSort(clients, fieldId * 2); // Sort Clients by ID
         for (i = 0; i < nClientsRead; i++)
           if (!filteredIndexes[i] && getLower((*clients).getClient(index).name).find(nameLower) != string::npos)
           {                            // Checks if the Client Name in Lowercase Contains the Parameter that is being Searched by Linear Search
@@ -287,17 +287,17 @@ void addClientToFile(Clients *clients)
   newClient.suspended = true; // New Clients will have to wait for an Admin to Remove their Suspension
   string suspended = (newClient.suspended) ? "true" : "false";
 
-  check = getClientId(clients, &id, &index, "ID"); // Get Client Id
+  check = getClientId(clients, &id, &index, "ID"); // Get Client ID
 
-  if (check != clientNotFound) // The Id has been Added to that File
+  if (check != clientNotFound) // The ID has been Added to that File
   {
-    assert(id > 0 && index >= 0); // Check Client Id and Index
+    assert(id > 0 && index >= 0); // Check Client ID and Index
     wrongClientData(clientExists);
     return; // End this Function
   }
 
-  assert(id > 0 && index == -1); // Check Client Id and Index
-  newClient.id = id;             // Assign Client Id
+  assert(id > 0 && index == -1); // Check Client ID and Index
+  newClient.id = id;             // Assign Client ID
 
   cout << "Name: "; // Get Client Name
   getline(cin, newClient.name);
@@ -434,7 +434,7 @@ void clientsMerge(Clients *clients, Client sorted[], int low, int mid, int high,
     (*clients).insertAt(i, sorted[i]);
 }
 
-// Function to Ask for Client Id
+// Function to Ask for Client ID
 clientStatus getClientId(Clients *clients, int *id, int *index, string message)
 {
   string temp;

@@ -154,7 +154,7 @@ float getFloat(string message, float low, float high)
   while (true)
     try // Get Float
     {
-      cout << message << " : ";
+      cout << message << ": ";
       getline(cin, temp);
       amount = stof(temp);
 

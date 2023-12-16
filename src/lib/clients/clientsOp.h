@@ -30,7 +30,7 @@ clientStatus checkClient(Clients *clients, T unique, fieldCmds field, int *index
   if (field != fieldId && field != fieldAccountNumber)
     return errorStatus;
   else
-    clientsMergeSort(clients, field * 2); // Sort Clients by Id or by Account Number
+    clientsMergeSort(clients, field * 2); // Sort Clients by ID or by Account Number
 
   Client client;
 
@@ -69,7 +69,7 @@ clientStatus checkClient(Clients *clients, T unique, fieldCmds field, int *index
       if (field == fieldId)
         *index = mid;
       else if (field == fieldAccountNumber)
-        checkClient(clients, client.id, fieldId, index); // Get Index of Client with that Account Number when the Array is Sorted by Id
+        checkClient(clients, client.id, fieldId, index); // Get Index of Client with that Account Number when the Array is Sorted by ID
 
       if ((*clients).getClient(*index).suspended)
         return clientSuspended;
