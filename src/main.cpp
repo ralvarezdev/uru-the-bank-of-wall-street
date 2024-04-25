@@ -449,7 +449,7 @@ void changeCwdToData()
   }
   catch (...)
   {
-    pressEnterToCont("Error: main.cpp File is not Inside 'lib' Folder", true);
+    pressEnterToCont("Error: main.cpp File is not Inside 'src' Folder", true);
   }
 }
 

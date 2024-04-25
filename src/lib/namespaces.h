@@ -22,7 +22,7 @@ namespace terminal
   const bool applyBgColor = true;     // Add Customed Background Color
   const bool applyFgColor = true;     // Add Customed Foreground Color
 
-  // --- Color Command Created Using the ralvarezdev's Minigrep Version. URL:https://github.com/ralvarezdev/minigrep
+  // --- Color Command Created Using ralvarezdev's Minigrep. URL:https://github.com/ralvarezdev/minigrep
 
   // - Normal State
   const string sgrBgCmd = "\x1b[48;2;153;255;204m"; // Command to Change the Text Background Color
@@ -33,7 +33,7 @@ namespace terminal
   const string sgrFgCmdError = "\x1b[38;2;255;255;255m";
 
   // - Number of Characters
-  const int nChar = 100;                                      // - Max Number of Characters being Printed in Each Line
+  const int nChar = 100;                                      // Max Number of Characters being Printed in Each Line
   const int paramPerLine = 3;                                 // Number of Parameters Printed by Line
   const int maxSpacing = 4;                                   // If the Maximum Number Characters is Reached this is the Spacing between Paratemeters
   const int nCharField = 15;                                  // Number of Characters for Field Title

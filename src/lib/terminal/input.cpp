@@ -1,5 +1,8 @@
 #include <iomanip>
 #include <iostream>
+#include <sstream>
+#include <stdexcept>
+
 #include "ansiEsc.h"
 #include "input.h"
 
@@ -138,10 +141,10 @@ void checkClientStatus(clientStatus clientStatus)
 // Function to Stop the Program Flow while the User doesn't press the ENTER key
 void pressEnterToCont(string message, bool warning)
 {
-  string temp;
+  string _temp;
 
   printTitle(message, applyBgColor, applyFgColor, warning);
-  getline(cin, temp);
+  getline(cin, _temp);
   // ignoreInput();
 }
 
@@ -158,10 +161,17 @@ float getFloat(string message, float low, float high)
       getline(cin, temp);
       amount = stof(temp);
 
-      if (amount > low && amount <= high)
-        return amount;
+      // Check it the Number Out of Range
+      if (amount < low || amount > high)
+        throw out_of_range("Amount Out of Range");
+
+      return amount;
     }
-    catch (...)
+    catch (const invalid_argument &e)
+    {
+      pressEnterToCont("ERROR: Invalid Argument. It Must be an Float", true);
+    }
+    catch (const out_of_range &e)
     {
       ostringstream stream;
 
