@@ -161,7 +161,7 @@ float getFloat(string message, float low, float high)
       getline(cin, temp);
       amount = stof(temp);
 
-      // Check it the Number Out of Range
+      // Check if the Number is Out of Range
       if (amount < low || amount > high)
         throw out_of_range("Amount Out of Range");
 
@@ -169,7 +169,7 @@ float getFloat(string message, float low, float high)
     }
     catch (const invalid_argument &e)
     {
-      pressEnterToCont("ERROR: Invalid Argument. It Must be an Float", true);
+      pressEnterToCont("ERROR: Invalid Argument. It Must be a Float", true);
     }
     catch (const out_of_range &e)
     {
